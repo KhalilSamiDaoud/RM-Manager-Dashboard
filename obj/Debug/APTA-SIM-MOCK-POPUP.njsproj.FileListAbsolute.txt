@@ -1,0 +1,3 @@
+C:\Users\kdaoud\source\repos\APTA-SIM-MOCK-POPUP\APTA-SIM-MOCK-POPUP\obj\Debug\APTA-SIM-MOCK-POPUP.njsproj.AssemblyReference.cache
+C:\Users\kdaoud\source\repos\APTA-SIM-MOCK-POPUP\APTA-SIM-MOCK-POPUP\obj\Debug\APTA-SIM-MOCK-POPUP.njsproj.CoreCompileInputs.cache
+C:\Users\kdaoud\source\repos\APTA-SIM-MOCK-POPUP\APTA-SIM-MOCK-POPUP\bin\Microsoft.NodejsTools.WebRole.dll

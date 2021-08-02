@@ -1,0 +1,236 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>ERSA Simulation - DC</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0">
+
+    <link rel="icon" href="favicon.ico">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection">
+    <link href="css/styles.css" type="text/css" rel="stylesheet" media="screen,projection">
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+</head>
+<body class="yellow darken-2 box">
+    <nav class="yellow darken-2 header-padding">
+
+        <img id="logo-container " class="brand-logo nav-bar-logo" src="media/logo.png" />
+
+        <a href="#" class="brand-logo center">ERSA Simulation - DC Area</a>
+
+        <ul class="right hide-on-med-and-down">
+            <li><a class="waves-effect waves-light btn grey darken-1">more info<i class="material-icons left">info</i></a></li>
+            <li><a class="waves-effect waves-light btn grey darken-1">request demo<i class="material-icons left">insights</i></a></li>
+        </ul>
+
+        <ul id="nav-mobile" class="sidenav">
+            <li><a href="#">Navbar Link</a></li>
+        </ul>
+        <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    </nav>
+    <main class="row content">
+        <div class="layer-canvas">
+
+            <div class="row">
+                <div class="col s12 m12 l3">
+                    <!--add header-->
+                    <div class="card-panel grey darken-1 trip-list-box" style="border-radius: 15px; margin-top: 15px; margin-left: 5px;">
+
+                        <h4 style="margin-top: -15px; color: white; font-weight: 300;">
+                            Trip Queue
+                            <a class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right modal-trigger" data-position="bottom" data-tooltip="Help" data-target="modal1"><i class="material-icons">help_outline</i></a>
+                            <a class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right" style="margin-right:10px;" data-position="bottom" data-tooltip="Reset trip queue"><i class="material-icons">autorenew</i></a>
+                        </h4>
+
+                        <ul class="collection white scrollbar-primary" style="margin-left: -23px; margin-right: -23px; overflow: hidden; overflow-y: scroll; max-height:670px;">
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">hail</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 1</span>
+                                <p>2221 st. NE <i class="material-icons">arrow_forward</i> 1764 R st. NW</p>
+                                <div class="progress" style="margin-bottom:-20px;">
+                                    <div id="progressBar" class="determinate"></div>
+                                </div>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">follow_the_signs</i>
+                                <span class="title" style="font-size:18px; font-weight:500;"><a href="#" class="tooltipped right" data-position="bottom" data-tooltip="Assign Trip"><i class="material-icons small yellow-text text-darken-2 r">add_location_alt</i></a>Trip 2 
+                                    </span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">hail</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 3</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">hail</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 4</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">follow_the_signs</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 5</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">directions_bus</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 6 - Fixed Stop</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">follow_the_signs</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 7</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">hail</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 8</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">follow_the_signs</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 8</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">directions_bus</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 9 - Fixed Stop</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                            <li class="card-panel collection-item avatar" style="margin:3px;">
+                                <i class="material-icons circle" style="font-size:25px;">directions_bus</i>
+                                <span class="title" style="font-size:18px; font-weight:500;">Trip 10 - Fixed Stop</span>
+                                <p>123 Place st. <i class="material-icons">chevron_right</i> 456 place st.</p>
+                            </li>
+                        </ul>
+                        <a class="waves-effect waves-light btn-large tooltipped yellow darken-2" style="width: 49%; font-size:18px; margin-right:3px;" data-position="bottom" data-tooltip="Add random trip"><i class="material-icons left">gps_fixed</i>add trip</a>
+                        <a class="waves-effect waves-light btn-large tooltipped yellow darken-2" style="width: 49%; font-size: 18px;" data-position="bottom" data-tooltip="Change simulated area"><i class="material-icons left">map</i>swap map</a>
+                    </div>
+                </div>
+
+                <div class="col s12 m12 l6" style="margin-top:15px;">
+                    <div id="map" class="z-depth-1" style="border-radius:15px; height:550px;"></div>
+                    <div style="margin-top:140px; margin-left:200px;">
+                        put some reactive animation stuff here
+                    </div>
+                </div>
+
+                <div class="col s12 m12 l3">
+                    <div class="card-panel grey darken-1 trip-list-box" style="border-radius:15px; margin-top:15px; margin-right:5px;">
+
+                        <h4 style="margin-top: -15px; color: white; font-weight: 300;">
+                            vehicle
+                            <a class="btn-floating btn-medium  tooltipped waves-effect waves-light yellow darken-2 right modal-trigger" data-position="bottom" data-tooltip="Help" data-target="modal1"><i class="material-icons">help_outline</i></a>
+                        </h4>
+
+                        <div style="border-radius:2px; margin-left:-23px; margin-right:-23px;">
+                            <table class="white highlight">
+                                <thead>
+                                    <tr>
+                                        <th>vehicle #</th>
+                                        <th>Status</th>
+                                        <th>Passengers</th>
+                                        <th>Capacity</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <tr>
+                                        <td>1A</td>
+                                        <td>In-Route</td>
+                                        <td>6</td>
+                                        <td>10</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2A</td>
+                                        <td>In-Depot</td>
+                                        <td>0</td>
+                                        <td>10</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3B</td>
+                                        <td>In-Depot</td>
+                                        <td>0</td>
+                                        <td>8</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card-panel grey darken-1 trip-list-box" style="border-radius:15px; margin-top:15px; margin-right:5px;">
+                        <h4 style="margin-top: -15px; color: white; font-weight: 300;">
+                            Statistics
+                            <a class="btn-floating btn-medium  tooltipped waves-effect waves-light yellow darken-2 right modal-trigger" data-position="bottom" data-tooltip="Help" data-target="modal1"><i class="material-icons">help_outline</i></a>
+                        </h4>
+
+                        <div class="white" style="margin-left: -23px; margin-right: -23px; overflow: hidden;">
+                            <div class="card-panel" style="margin:5px;">
+                                <div id="chart_div"></div>
+                            </div>
+
+                            <table class="white highlight center" style="margin-top:15px;">
+                                <tbody>
+                                    <tr>
+                                        <td>Average Wait Time:</td>
+                                        <td>~8min</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Passengers Served:</td>
+                                        <td>6</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Revenue Generated:</td>
+                                        <td>$234.44</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Structure -->
+        <div id="modal1" class="modal">
+            <div class="modal-content">
+                <h4>Some help</h4>
+                <p>One day I will help someone</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">GOT IT</a>
+            </div>
+        </div>
+
+
+    </main>
+
+    <footer class="page-footer yellow darken-3" style="height:10px;">
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="js/materialize.js"></script>
+    <script type="text/javascript" src="js/map.js"></script>
+    <script type="text/javascript" src="js/chart.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.tooltipped').tooltip();
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('.modal').modal();
+        });
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC3NIEDkRjSnmYseoNvVGkX-lPbssaPiHU&callback=initMap&libraries=&v=weekly" async></script>
+</body>
+</html>

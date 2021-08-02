@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>ERSA Simulation</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0">
+
+    <link rel="icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection">
+    <link href="css/styles.css" type="text/css" rel="stylesheet" media="screen,projection">
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script>google.charts.load("current", { packages: ['corechart'] });</script>
+</head>
+<body class="yellow darken-2 box">
+
+    <!--preloader-->
+    <div class="preloader"></div>
+
+    <!--header / nav-->
+    <nav class="yellow darken-2 header-padding">
+        <img id="logo-container" class="brand-logo nav-bar-logo hide-on-med-and-down" style="margin-left: 10px;" src="media/logo.png" />
+        <a id="headertitle" class="brand-logo center">ERSA Simulation</a>
+        <ul class="right hide-on-med-and-down">
+            <li><a class="waves-effect waves-light btn grey darken-1 modal-trigger" data-target="modalinfo">more info<i class="material-icons left">info</i></a></li>
+            <li><a class="waves-effect waves-light btn grey darken-1 modal-trigger" data-target="modaldemo">request demo<i class="material-icons left">insights</i></a></li>
+        </ul>
+        <ul id="nav-mobile" class="sidenav">
+            <li><img id="logo-container" class="nav-bar-logo-mobile" src="media/logo.png" /><div class="divider"></div></li>
+            <li><a class="waves-effect modal-trigger" data-target="modalinfo">more info<i class="material-icons left">info</i></a></li>
+            <li><a class="waves-effect modal-trigger" data-target="modaldemo">request demo<i class="material-icons left">insights</i></a></li>
+        </ul>
+        <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    </nav>
+
+    <!--main page content-->
+    <main class="row content">
+        <div class="layer-canvas">
+            <div class="row">
+                <div id="leftcol" class="col s12 m12 l3 left">
+
+                    <div id="queuepanel" class="card-panel grey darken-1 tripqueue">
+                        <!-- hidden file picker -->
+                        <input id="filePicker" type="file" accept=".xlsx, .xls, .csv, .ods" style="display:none">
+
+                        <h4 class="panelheader">
+                            Trip Queue
+                            <a id="helpqueue" class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right modal-trigger" data-position="bottom" data-tooltip="Help" data-target="modalhelp1"><i class="material-icons">help_outline</i></a>
+                            <a id="popqueue" class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right" style="margin-right:10px;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                            <a id="filebutton" class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right" style="margin-right:10px;" data-position="bottom" data-tooltip="Set trips from CSV"><i class="material-icons">upload_file</i></a>
+                        </h4>
+
+                        <div class="cardcontent">
+                            <ul id="tabs" class="tabs yellow-text scrollbar-x-primary">
+                                <!-- Content filled in tripQueue.js-->
+                            </ul>
+                        </div>
+
+                        <div id="lists">
+                            <!-- Content filled in tripQueue.js-->
+                        </div>
+
+                        <div id="queuebuttons" class="queuefooter">
+                            <a id="routetrip" class="waves-effect waves-light btn-large yellow darken-2 routetripbutton"><i class="material-icons left">gps_fixed</i>route trip</a>
+                            <a id="swapmap" class="waves-effect waves-light btn-large yellow darken-2 swapmapbutton"><i class="material-icons left">map</i>swap map</a>
+                        </div>
+                    </div>
+                    <div id="queueplaceholder" class="queuepanelph" style="display:none"><p>Queue: un-docked</p></div>
+                </div>
+
+                <div id="centercol" class="col s12 m12 l6" style="margin-top: 15px; position:relative">
+                    <div id="map" class="z-depth-1 mapdefault"></div>
+
+                    <div id="clock" style="position: absolute; top: 0%; left: 38%; z-index: 98; background: rgb(0, 0, 0, 0.5); width: 26%; border-radius: 3px; height: 6%; padding-left: 10px;"><p class="left" style="color: rgb(255, 255, 255, 1); font-size: 30px; margin-top:0px;"><!-- Content filled in tripQueue.js--></p></div>
+                    <div style="position: absolute; top: 0%; left: 38%; z-index: 99; width: 26%; border-radius: 3px; height:6%">
+                        <a id="fastspeed" class="btn-floating btn-medium waves-effect waves-light grey z-depth-0 right tooltipped" data-position="bottom" data-tooltip="300x Speed" style="margin-top: 4px; margin-right: 10px;" onclick="M.toast({html: 'Simulation speed: 300x'})"><i class="material-icons">fast_forward</i></a>
+                        <a id="normalspeed" class="btn-floating btn-medium waves-effect waves-light light-green z-depth-0 right interactable tooltipped" data-position="bottom" data-tooltip="60x Speed" style="margin-top: 4px; margin-right: 5px;" onclick="M.toast({html: 'Simulation speed: 60x'})"><i class="material-icons">play_arrow</i></a>
+                    </div>
+                </div>
+
+                <div id="rightcol" class="col s12 m12 l3 right">
+                    <div id="logpanel" class="card-panel grey darken-1" style="border-radius: 15px; margin-top: 15px; margin-right: 5px; margin-left: 30px;">
+                        <h4 class="panelheader">
+                            Event Log
+                            <a id="helplog" class="btn-floating btn-medium  tooltipped waves-effect waves-light yellow darken-2 right modal-trigger" data-position="bottom" data-tooltip="Help" data-target="modalhelp1"><i class="material-icons">help_outline</i></a>
+                            <a id="poplog" class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right" style="margin-right:10px;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                            <a id="clearlog" class="btn-floating btn-medium  tooltipped waves-effect waves-light yellow darken-2 right modal-trigger" style="margin-right:10px;" data-position="bottom" data-tooltip="Clear log"><i class="material-icons">clear_all</i></a>
+                        </h4>
+                        <div id="logbox" class="white scrollbar-primary logbox">
+                            <!-- Content filled in log.js-->
+                        </div>
+                    </div>
+                    <div id="logplaceholder" class="logpanelph" style="display:none"><p>Log: un-docked</p></div>
+
+                    <div id="statspanel" class="card-panel grey darken-1" style="border-radius: 15px; margin-top: 15px; margin-right: 5px; margin-left: 30px;">
+                        <h4 class="panelheader">
+                            Statistics
+                            <a id="helpstats" class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right modal-trigger" data-position="bottom" data-tooltip="Help" data-target="modalhelp1"><i class="material-icons">help_outline</i></a>
+                            <a id="popstats" class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right" style="margin-right:10px;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                        </h4>
+
+                        <div class="white" style="margin-left: -23px; margin-right: -23px; overflow: hidden; height: 44vh;">
+                            <div class="card-panel" style="margin:5px; height:58%">
+                                <div id="chart_div" style="margin-left: -15px; margin-right: -10px; margin-top:-10px; margin-bottom:10px; height: 100%;"></div>
+                            </div>
+
+                            <table id="statslist" class="white highlight center" style="margin-top:15px;">
+                                <tbody>
+                                    <!-- Content filled in statisticsList.js-->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="statsplaceholder" class="statspanelph" style="display:none"><p>Statistics: un-docked</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Structure -->
+        <div id="modalhelp1" class="modal">
+            <div class="modal-content">
+                <h4>Help Stuff</h4>
+                <p>I will help one day.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">got it!</a>
+            </div>
+        </div>
+
+        <div id="modalqr" class="modal white">
+            <div class="row" style="margin:0px; padding:0px;">
+                <img class="responsive-img col s6 m6 l6" src="media/scanner.svg" style="max-height: 295px;" />
+                <blockquote class="col s6 m6 l6 flow-text" style="margin-top:35px; margin-left:-65px;">
+                    <h2>Scan the QR code!</h2>
+                    You will be directed to a page where you can set your own trips and watch ERSA re-route in real time.
+                </blockquote>
+            </div>
+        </div>
+
+        <div id="modaldemo" class="modal" style="overflow-x: hidden">
+            <h4>Request a demo </h4>
+            <div class="row">
+                <form class="col s12">
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <i class="material-icons prefix">person</i>
+                            <input id="first_name" type="text" class="validate">
+                            <label for="first_name">First Name</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <input id="last_name" type="text" class="validate">
+                            <label for="last_name">Last Name</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">email</i>
+                            <input id="email" type="email" class="validate">
+                            <label for="email">Email</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">notes</i>
+                            <input id="notes" type="text" class="validate">
+                            <label for="notes">Notes</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <a class="waves-effect waves-light btn-large yellow darken-2 col offset-l5 modal-close" style="font-size:18px; margin-right:3px;" onclick="M.toast({html: 'Demo Request Submitted!'})"><i class="material-icons left">send</i>submit</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="modalfare" class="modal">
+            <div class="modal-content">
+                <h4>Custom Fare</h4>
+                <p>Set custom fare values for Micro-Transit revenue calculations</p>
+                <div class="row">
+                    <form class="col s12">
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <i class="material-icons prefix">attach_money</i>
+                                <input id="basefee" type="number" class="validate" min="0" step="0.05">
+                                <label for="basefee">Base Fee (EX. 4.5)</label>
+                                <span class="helper-text" data-error="Warning: negative numbers will default"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <i class="material-icons prefix">add_road</i>
+                                <input id="feepermile" type="number" class="validate" min="0" step="0.05">
+                                <label for="feepermile">Fee per Mile (EX. 0.75)</label>
+                                <span class="helper-text" data-error="Warning: negative numbers will default"></span>
+                            </div>
+                        </div>
+                        <div class="row center-align">
+                            <a id="farebutton" class="waves-effect waves-light btn-large yellow darken-2" style="font-size:18px;"><i class="material-icons left">send</i>submit</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="modalinfo" class="modal">
+            <div class="modal-content">
+                <h4>Help Stuff</h4>
+                <p>I will help one day.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">got it!</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="yellow darken-3">
+        <a class="white-text" href="#" style="margin:0px; margin-left: 10px;"><u>legal</u></a>
+        <a class="white-text" href="http://itcurves.net/" style="margin:0px; margin-left: 10px;"><u>IT Curves</u></a>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="js/materialize.js"></script>
+    <script type="module" src="js/main.js"></script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC3NIEDkRjSnmYseoNvVGkX-lPbssaPiHU&libraries=&v=weekly" async></script>
+</body>
+</html>
