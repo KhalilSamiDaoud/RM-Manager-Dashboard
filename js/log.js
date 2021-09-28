@@ -9,14 +9,14 @@ document.getElementById('poplog').addEventListener('click', popLog);
 var logWin = document;
 let logBox = logWin.getElementById('logbox');
 
-function addEvent(innerElems=[]) {
+function addEvent(innerElems = []) {
     let entry = logWin.createElement('div');
-    entry.setAttribute('class', 'z-depth-1 ' + ((logWin == document) ? 'logentry' : 'logpanelentry'));
+    entry.setAttribute('class', 'z-depth-1 slide ' + ((logWin == document) ? 'logentry' : 'logpanelentry'));
 
     if (innerElems.length > 0)
-    innerElems.forEach(elem => {
-        entry.appendChild(elem);
-    });
+        innerElems.forEach(elem => {
+            entry.appendChild(elem);
+        });
 
     let entryTime = logWin.createElement('a');
     entryTime.setAttribute('class', 'right cyan-text');
@@ -36,16 +36,12 @@ function clearEvents() {
 function autoScroll() {
     if (logWin == document)
         logBox.scrollTop = (logBox.scrollTop + 300 >= logBox.scrollHeight) ? logBox.scrollHeight : logBox.scrollTop;
-    else
-        logBox.scrollTop = (logBox.scrollTop + logWin.defaultView.innerHeight >= logBox.scrollHeight) ? logBox.scrollHeight : logBox.scrollTop;
+    else {
+        logBox.scrollTop = (logBox.scrollTop + logWin.defaultView.outerHeight >= logBox.scrollHeight) ? logBox.scrollHeight : logBox.scrollTop;
+    }
 }
 
-String.prototype.trunc =
-    function (n) {
-        return this.substr(0, n - 1) + (this.length > n ? '&hellip;' : '');
-    };
-
-function initEvent(optMsg=undefined) {
+function initEvent(optMsg = undefined) {
     let innerText = (typeof fileName == undefined || optMsg == null) ? 'Initializing route from file' : optMsg;
     let stpElems = [];
 
@@ -61,8 +57,8 @@ function initEvent(optMsg=undefined) {
     addEvent(stpElems);
 }
 
-function fileEvent(fileName=undefined) {
-    let innerText = (typeof fileName == undefined || fileName == null) ? 'Loaded user file' : 'Loaded file \'' + fileName + '\'';
+function fileEvent(fileName = undefined) {
+    let innerText = (typeof fileName == undefined || fileName == null) ? 'Loaded user file' : 'Loaded file <em class="">\'' + fileName + '\'</em>';
     let stpElems = [];
 
     let entryIcon = logWin.createElement('i');
@@ -84,13 +80,13 @@ function vehicleEvent(vehicle, pos) {
 
     switch (tripRef.type) {
         case (tripType.pickup):
-            innerText = 'pick-up @ ' + tripRef.DOadr.trunc(20);
+            innerText = 'pick-up @ ' + tripRef.DOadr;
             break;
         case (tripType.dropoff):
-            innerText = 'drop-off @ ' + tripRef.DOadr.trunc(20);
+            innerText = 'drop-off @ ' + tripRef.DOadr;
             break;
         case (tripType.fixedstop):
-            innerText = 'Arived at station \'' + tripRef.name + '\'';
+            innerText = 'Arrived at station \'' + tripRef.name + '\'';
             break;
         case (tripType.depot):
             innerText = vehicle.name + ' is Depoting';
@@ -132,11 +128,14 @@ function popLog() {
         logWin.getElementById('poplog').firstChild.innerHTML = 'exit_to_app';
         logWin.getElementById('poplog').removeAttribute('style');
         logWin.getElementById('poplog').setAttribute('data-tooltip', 'Dock');
-        logWin.getElementById('helplog').style.display = 'none';
         document.getElementById('logplaceholder').style.display = 'block';
 
         let entries = Array.from(logWin.getElementById('logbox').children);
-        entries.forEach(entry => { entry.classList.replace('logentry', 'logpanelentry'); });
+        entries.forEach(entry => {
+            entry.classList.replace('logentry', 'logpanelentry');
+            if (entry.classList.contains('slide'));
+            entry.classList.remove('slide');
+        });
 
         checkMapResize();
     }
@@ -154,18 +153,19 @@ function dockLog() {
         document.getElementById('poplog').firstChild.innerHTML = 'launch';
         document.getElementById('poplog').setAttribute('style', 'margin-right:10px;');
         document.getElementById('poplog').setAttribute('data-tooltip', 'Pop-out');
-        document.getElementById('helplog').style.display = 'block';
         document.getElementById('logplaceholder').style.display = 'none';
 
         let entries = Array.from(document.getElementById('logbox').children);
-        entries.forEach(entry => { entry.classList.replace('logpanelentry', 'logentry'); });
+        entries.forEach(entry => {
+            entry.classList.replace('logpanelentry', 'logentry');
+            if (entry.classList.contains('slide'));
+            entry.classList.remove('slide');
+        });
 
         logWin = removePopWindow(windowType.log);
+        logBox.scrollTop = logBox.scrollHeight;
         M.Tooltip.init(document.getElementById('poplog'));
         M.Tooltip.init(document.getElementById('clearlog'));
-        M.Tooltip.init(document.getElementById('helplog'));
-        logBox.scrollTop = logBox.scrollHeight;
-
         checkMapResize();
     }
 }

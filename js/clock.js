@@ -6,7 +6,7 @@ document.getElementById('fastspeed').addEventListener('click', setSpeedFast);
 
 const btnNormal = document.getElementById('normalspeed');
 const btnFast = document.getElementById('fastspeed');
-const clock = document.getElementById('clock').firstChild;
+const clock = document.getElementById('clock');
 
 var clockStartTime, clockCurrTime;
 var simSpeedFactor = 1; // 1 second = 1 minute  @ factor = 1

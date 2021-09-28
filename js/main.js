@@ -1,13 +1,14 @@
+import { createGeneralStats, createVehicleStats, clearGeneralStats, clearVehicleStats } from './statisticsList.js';
 import { createTripTabs, createTripLists, clearTripTabs, clearTripLists } from './tripQueue.js';
 import { initCoords, initMode, initEventEntry, simArea } from './constants.js';
 import { initMap, createVehicleIcon, drawStaticIcons } from './map.js';
-import { createStatsList, clearStatsList } from './statisticsList.js';
 import { populateRandVehicles, vehicles } from './vehicleList.js';
 import { startClock, stopClock } from './clock.js';
-import { drawMaterial } from './chart.js';
+import { drawMaterial } from './barChart.js';
 import { APIinit } from './APIinput.js';
 import { initEvent } from './log.js';
 
+let curMode = initMode.none;
 let prevInitalized = false;
 
 function initSimulation(mode, coords = initCoords[0]) {
@@ -16,7 +17,8 @@ function initSimulation(mode, coords = initCoords[0]) {
     if (prevInitalized) {
         clearTripTabs();
         clearTripLists();
-        clearStatsList();
+        clearGeneralStats();
+        clearVehicleStats()
         stopClock();
     }
 
@@ -40,7 +42,8 @@ function initSimulation(mode, coords = initCoords[0]) {
     }
     createTripTabs();
     createTripLists();
-    createStatsList();
+    createGeneralStats();
+    createVehicleStats();
 
     vehicles.forEach(vehicle => {
         vehicle.updateQueue();
@@ -50,29 +53,29 @@ function initSimulation(mode, coords = initCoords[0]) {
 
     drawStaticIcons();
 
-    if (prevInitalized) {
-        M.AutoInit();
-        $('#tabs').tabs().tabs('select', vehicles[0].name);
-        drawMaterial();
-    }
+    if (prevInitalized)
+        materializeReload();
+    else
+        materializeInit();
 
+    drawMaterial();
     startClock();
 
     if (!prevInitalized)
         prevInitalized = true;
+
+    curMode = mode;
 }
 
-function startSequence() {
-    APIinit()
-        .then(_ => {
-            $('.preloader').fadeOut('slow');
-            $('.showable').show();
-            $('.tooltipped').tooltip();
-            $('.modal').modal();
-            $('.tabs').tabs();
-            $('.sidenav').sidenav();
-        })
-        .then(drawMaterial);
+async function startSequence() {
+    try {
+        await APIinit();
+    }
+    catch (err) {
+        console.log(err);
+        initEvent(initEventEntry.APIError);
+        initSimulation(initMode.test);
+    }
 }
 
 function stopSimulation() {
@@ -82,9 +85,26 @@ function stopSimulation() {
     });
 }
 
-function setHeaderTitle(area) {
+function materializeInit() {
+    if (!prevInitalized) {
+        $('.sidenav').sidenav();
+        $('.preloader').fadeOut('slow');
+        $('select').formSelect();
+    }
+    $('.modal').modal();
+    $('.showable').show();
+    $('.tooltipped').tooltip();
+    $('#tabs').tabs();
+}
+
+function materializeReload() {
+    materializeInit();
+    $('#tabs').tabs().tabs('select', vehicles[0].name);
+}
+
+function setHeaderTitle(area, specialMsg = '') {
     document.title = area;
-    document.getElementById('headertitle').innerHTML = area;
+    document.getElementById('headertitle').innerHTML = area + specialMsg;
 }
 
 function main() {
@@ -93,4 +113,4 @@ function main() {
 
 main();
 
-export { stopSimulation, initSimulation };
+export { stopSimulation, initSimulation, materializeInit, curMode };

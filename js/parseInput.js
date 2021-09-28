@@ -1,4 +1,5 @@
 import { vehicles, createVehicle, clearVehicles, sortVehicleList } from './vehicleList.js';
+import { calcWaitTime } from './simMath.js';
 import { tripType } from './constants.js';
 import { initClock } from './clock.js';
 import { Trip } from './trip.js';
@@ -20,6 +21,20 @@ function findColIndex(tripListObj) {
     }
 }
 
+function findVehicleIndex(records, fileColumns) {
+    let vehIndxs = {}
+    let currVeh = '';
+
+    for (let i = 0; i < records.length; i++) {
+        if (records[i]?.[fileColumns.vehNumIndex] && records[i][fileColumns.vehNumIndex] != currVeh) {
+            vehIndxs[records[i][fileColumns.vehNumIndex]] = i;
+            currVeh = records[i][fileColumns.vehNumIndex];
+        }
+    }
+
+    return vehIndxs;
+}
+
 function trimStreetNames(tripListObj, fileColumns) {
     tripListObj.forEach(record => {
         if (record[fileColumns.adrIndex] != null && record[fileColumns.adrIndex] != undefined && record[fileColumns.adrIndex].includes(','))
@@ -37,51 +52,48 @@ function fullParse(records, fileColumns) {
     getClockTimes(records, fileColumns);
 }
 
-function parseTime(timeString) {
+// mode 0 = time array [hr,min,sec]
+// mode 1 = minutes representation
+// mode 2 = both [minutes, [hr,min,sec]]
+function parseTime(timeString, mode = 1) {
     let UDTfix = (timeString.length > 11) ? 300 : 0;
     let hms, minutes;
 
-    if (UDTfix)
+    if (UDTfix) {
         hms = timeString.substring(timeString.indexOf('T') + 1, timeString.indexOf('T') + 9).split(':');
+        hms[0] = (+hms[0] - 5 < 0) ? (24 + (+hms[0] - 5)) : +hms[0] - 5;
+    }
     else
         hms = timeString.substring(0, 11).split(/:| /);
 
-    minutes = ((+hms[0]) * 60 + (+hms[1]) + (+hms[2] / 60) - UDTfix);
-    minutes = (minutes < 0 || hms[hms.length-1] == 'PM') ? 1440 + minutes : minutes;
+    switch (mode) {
+        case 0:
+            return hms;
+        case 1:
+        case 2:
+            minutes = (+hms[0]) * 60 + (+hms[1]) + (+hms[2] / 60);
+            minutes = (minutes < 0 || hms[hms.length - 1] == 'PM') ? 1440 + minutes : minutes;
 
-    return minutes;
-}
-
-function calcWaitTime(record, fileColumns) {
-    if (record[fileColumns.requestTimeIndex] == null)
-        return 0;
-
-    let reqTimeMin, schdTimeMin;
-    reqTimeMin = schdTimeMin = 0;
-
-    reqTimeMin = parseTime(record[fileColumns.requestTimeIndex]);
-    schdTimeMin = parseTime(record[fileColumns.scheduleTimeIndex]);
-
-    return (reqTimeMin - schdTimeMin > 0 || Number.isNaN(reqTimeMin - schdTimeMin)) ? 0 : Math.abs(reqTimeMin - schdTimeMin);
+            if (mode == 1)
+                return minutes;
+            else
+                return [minutes, [+hms[0], +hms[1], +hms[2]]];
+        default:
+            throw new Error('invalid mode (' + mode + ')');
+    }
 }
 
 function getTripType(record, fileColumns) {
     switch (record[fileColumns.typeIndex]) {
         case 'PU':
             return tripType.pickup;
-            break;
         case 'DO':
             return tripType.dropoff;
-            break;
         case 'StartDepot':
-            return tripType.depot;
-            break;
         case 'EndDepot':
             return tripType.depot;
-            break;
         default:
             return tripType.unknown;
-            break;
     }
 }
 
@@ -141,7 +153,7 @@ function getFixedStopsFromJSON(records, fileColumns) {
 
                         //arbitrary speed / idle / wait as the SIM should not do any geo-location loop-ups to determine fixed-stop loops (cannot be determined from ERSA routing). 
                         vehicle.stops.push(new Trip(record[fileColumns.nameIndex], tripType.fixedstop, { lat: record[fileColumns.latIndex], lng: record[fileColumns.longIndex] },
-                        { lat: 0.0, lng: 0.0 }, record[fileColumns.adrIndex], 'N/A', 5.4, 12, 0, record[fileColumns.passengerIndex], record[fileColumns.estDistanceIndex]));
+                            { lat: 0.0, lng: 0.0 }, record[fileColumns.adrIndex], 'N/A', 5.4, 12, 0, record[fileColumns.passengerIndex], record[fileColumns.estDistanceIndex]));
                     }
         });
 
@@ -208,4 +220,4 @@ function getQueueFromJSON(records, fileColumns) {
     });
 }
 
-export { findColIndex, findCenter, fullParse, trimStreetNames }
+export { findColIndex, findCenter, fullParse, parseTime, trimStreetNames, findVehicleIndex }

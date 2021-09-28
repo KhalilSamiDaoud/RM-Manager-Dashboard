@@ -50,6 +50,9 @@ function createVehicle(VehID, VehCap, startTime) {
 }
 
 function clearVehicles() {
+    vehicles.forEach( vehicle => {
+        vehicle.clearIntervals();
+    });
     vehicles = [];
 }
 
@@ -66,4 +69,12 @@ function vehicleStartTimeCompare(a, b) {
         return 0;
 }
 
-export { populateRandVehicles, createVehicle, clearVehicles, sortVehicleList, vehicles };
+function isAllDepot() {
+    for (let i=0; i < vehicles.length; i++) {
+        if(!vehicles[i].hasFinished())
+            return false;
+    }
+    return true;
+}
+
+export { populateRandVehicles, createVehicle, clearVehicles, sortVehicleList, isAllDepot, vehicles };

@@ -1,83 +1,104 @@
+import { calcAvgWait, calcPassengersServed, calcRevenueGenerated, incrementGeneralTrips, resetGeneralVals, fareRate } from './simMath.js';
 import { createPopWindow, removePopWindow } from './popWindowList.js';
-import { simArea, windowType } from './constants.js';
+import { windowType } from './constants.js';
 import { importFile } from './fileInput.js';
 import { checkMapResize } from './map.js';
-import { drawMaterial } from './chart.js';
+import { drawMaterial } from './barChart.js';
+import { vehicles } from './vehicleList.js';
 
 document.getElementById('popstats').addEventListener('click', popStats);
 
 var statsWin = document;
-let statsTable = statsWin.getElementById('statslist').getElementsByTagName('tbody');
-let sumTime, sumPass, sumTrips, sumRevn;
+let generalTable = statsWin.getElementById('generalstats').getElementsByTagName('tbody');
+let vehicleTable = statsWin.getElementById('vehiclestats').getElementsByTagName('tbody');
 
-let fareRate = [
-    { base: 3.75, mile: 1.50 },
-    { base: 5.50, mile: 2.75 },
-    { base: 4.00, mile: 1.75 }
-];
-
-sumTime = sumPass = sumTrips = sumRevn = 0;
-
-function createStatsList() {
+function createGeneralStats() {
     let newRow;
 
-    newRow = statsTable[0].insertRow(0);
+    newRow = generalTable[0].insertRow(0);
     newRow.insertCell().appendChild(statsWin.createTextNode('Average requested-to-pickup Time:'));
     newRow.insertCell().appendChild(statsWin.createTextNode('. . .'));
 
-    newRow = statsTable[0].insertRow(1);
+    newRow = generalTable[0].insertRow(1);
     newRow.insertCell().appendChild(statsWin.createTextNode('MT Passengers Served:'));
     newRow.insertCell().appendChild(statsWin.createTextNode('. . .'));
 
-    newRow = statsTable[0].insertRow(2);
+    newRow = generalTable[0].insertRow(2);
     newRow.insertCell().appendChild(statsWin.createTextNode('Revenue Generated:'));
     newRow.insertCell().appendChild(statsWin.createTextNode('. . .'));
 }
 
-function clearStatsList() {
+function createVehicleStats() {
+    let vehicleCell;
+    let vehicleIcon
+    let newRow;
+    let index = 0;
+
+    vehicles.forEach(vehicle => {
+        vehicleCell = document.createElement('a');
+        vehicleCell.setAttribute('class', vehicle.color.class);
+        vehicleCell.innerHTML = vehicle.name;
+
+        vehicleIcon = document.createElement('i');
+        vehicleIcon.setAttribute('class', 'material-icons left');
+        vehicleIcon.innerHTML = 'directions_bus';
+
+        vehicleCell.appendChild(vehicleIcon);
+
+        newRow = vehicleTable[0].insertRow(index);
+        newRow.insertCell().appendChild(vehicleCell);
+        newRow.insertCell().appendChild(statsWin.createTextNode('...'));
+        newRow.insertCell().appendChild(statsWin.createTextNode('...'));
+        newRow.insertCell().appendChild(statsWin.createTextNode('...'));
+        newRow.insertCell().appendChild(statsWin.createTextNode('...'));
+
+        index++;
+    });
+}
+
+function clearGeneralStats() {
     let new_tbody = statsWin.createElement('tbody');
-    statsWin.getElementById('statslist').replaceChild(new_tbody, statsTable[0]);
+    statsWin.getElementById('generalstats').replaceChild(new_tbody, generalTable[0]);
 
-    sumTime = sumPass = sumTrips = sumRevn = 0;
-    fareRate.Cust = { base: 2, mile: 0.25 };
+    resetGeneralVals();
 }
 
-function updateStatsList(index, value) {
-    let editRow = statsTable[0].rows[index];
-    editRow.cells[1].replaceChild(statsWin.createTextNode(value), editRow.cells[1].firstChild);
+function clearVehicleStats() {
+    let new_tbody = statsWin.createElement('tbody');
+    statsWin.getElementById('vehiclestats').replaceChild(new_tbody, vehicleTable[0]);
 }
 
-function calcAll(trip) {
-    calcPassengersServed(trip);
-    calcAvgWait(trip);
-    calcRevenueGenerated(trip);
-}
+async function updateStatsList(newStats) {
+    let editRow;
+    let index = 0;
 
-function calcAvgWait(trip) {
-    sumTime += trip.waitTime;
-    updateStatsList(0, '~' + (Math.round((sumTime / sumTrips) * 100) / 100) + ' min');
-}
-
-function calcPassengersServed(trip) {
-    sumPass += trip.passengers;
-    sumTrips++;
-    updateStatsList(1, sumPass);
-}
-
-function calcRevenueGenerated(trip) {
-    switch (document.title) {
-        case simArea.DC:
-            sumRevn += fareRate[0].base + (fareRate[0].mile * trip.distance);
-            break;
-        case simArea.LA:
-            sumRevn += fareRate[1].base + (fareRate[1].mile * trip.distance);
-            break;
-        case simArea.Cust:
-            sumRevn += fareRate[2].base + (fareRate[2].mile * trip.distance);
-            break;
+    while (index < newStats.length) {
+        editRow = generalTable[0].rows[index];
+        editRow.cells[1].replaceChild(statsWin.createTextNode(newStats[index]), editRow.cells[1].firstChild);
+        index++;
     }
+}
 
-    updateStatsList(2, '$' + (Math.round(sumRevn * 100) / 100));
+async function updateVehicleStats(vehicle) {
+    let editRow = vehicleTable[0].rows[vehicles.indexOf(vehicle)];
+    let index = 1;
+
+    for (var key in vehicle.formattedStats) {
+        editRow.cells[index].replaceChild(statsWin.createTextNode(vehicle.formattedStats[key]), editRow.cells[index].firstChild);
+        index++;
+    }
+}
+
+async function updateGeneralStats(trip) {
+    incrementGeneralTrips();
+
+    const tempStats = [
+        await calcAvgWait(trip, true),
+        await calcPassengersServed(trip),
+        await calcRevenueGenerated(trip, true)
+    ]
+
+    updateStatsList(tempStats);
 }
 
 function getUserFare(evt) {
@@ -115,11 +136,15 @@ function popStats() {
         statsWin.getElementById('statspanel').children[1].classList.toggle('panelcontent');
         statsWin.getElementById('statspanel').children[1].children[0].classList.toggle('statpanelgraph');
         statsWin.getElementById('statspanel').children[1].children[1].classList.toggle('statpaneltable');
+        statsWin.getElementById('vehiclestats').classList.toggle('responsive-table-text');
+        statsWin.getElementById('vehiclestats').classList.toggle('responsive-table');
+        statsWin.getElementById('vehiclestats').classList.toggle('centered');
+
 
         statsWin.getElementById('popstats').firstChild.innerHTML = 'exit_to_app';
         statsWin.getElementById('popstats').removeAttribute('style');
         statsWin.getElementById('popstats').setAttribute('data-tooltip', 'Dock');
-        statsWin.getElementById('helpstats').style.display = 'none';
+        statsWin.getElementById('detailstats').style.display = 'none';
         document.getElementById('statsplaceholder').style.display = 'block';
 
         checkMapResize();
@@ -136,18 +161,20 @@ function dockStats() {
         document.getElementById('statspanel').children[1].classList.toggle('panelcontent');
         document.getElementById('statspanel').children[1].children[0].classList.toggle('statpanelgraph');
         document.getElementById('statspanel').children[1].children[1].classList.toggle('statpaneltable');
+        document.getElementById('vehiclestats').classList.toggle('responsive-table-text');
+        document.getElementById('vehiclestats').classList.toggle('responsive-table');
+        document.getElementById('vehiclestats').classList.toggle('centered');
 
         document.getElementById('popstats').firstChild.innerHTML = 'launch';
         document.getElementById('popstats').setAttribute('style', 'margin-right:10px;');
         document.getElementById('popstats').setAttribute('data-tooltip', 'Pop-out');
-        document.getElementById('helpstats').style.display = 'block';
+        document.getElementById('detailstats').style.display = 'block';
         document.getElementById('statsplaceholder').style.display = 'none';
 
-        drawMaterial();
         statsWin = removePopWindow(windowType.statistics);
+        M.Tooltip.init(document.getElementById('detailstats'));
         M.Tooltip.init(document.getElementById('popstats'));
-        M.Tooltip.init(document.getElementById('helpstats'));
-
+        drawMaterial();
         checkMapResize();
     }
 }
@@ -156,5 +183,5 @@ function isStatsPoped() {
     return statsWin != document;
 }
 
-export { createStatsList, clearStatsList, calcAll, isStatsPoped, getUserFare, dockStats };
+export { createGeneralStats, clearGeneralStats, clearVehicleStats, updateGeneralStats, isStatsPoped, getUserFare, dockStats, createVehicleStats, updateVehicleStats, statsWin };
 

@@ -16,7 +16,6 @@ function removePopWindow(type) {
             windows.splice(i, 1);
         }
     }
-
     return document;
 }
 

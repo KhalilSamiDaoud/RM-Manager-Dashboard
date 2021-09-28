@@ -1,7 +1,8 @@
 import { createPopWindow, removePopWindow } from './popWindowList.js';
-import { vehStatus, windowType } from './constants.js';
+import { vehStatus, windowType, tripType } from './constants.js';
 import { vehicles } from './vehicleList.js';
 import { checkMapResize } from './map.js';
+import { materializeInit } from './main.js';
 
 document.getElementById('popqueue').addEventListener('click', popQueue);
 
@@ -81,7 +82,7 @@ function updateTripTab(vehicle) {
     let tabIcon = tab.getElementsByTagName('i')[0];
 
     tab.setAttribute('class', 'tab tooltipped');
-    if (vehicle.status == vehStatus.route) {
+    if (vehicle.status == vehStatus.route || vehicle.status == vehStatus.loop) {
         tabIcon.innerHTML = 'directions_bus';
         tabIcon.setAttribute('class', 'material-icons ' + vehicle.color.class);
     }
@@ -96,7 +97,7 @@ function createTripLists() {
         //configure list - create ID div
         let listDiv = queueWin.createElement('div');
         listDiv.setAttribute('id', vehicle.name);
-        listDiv.setAttribute('class', 'showable');
+        //listDiv.setAttribute('class', 'showable');
 
         //configure list - UL
         let listUL = queueWin.createElement('ul');
@@ -134,19 +135,28 @@ function assignNewQueue(vehicle) {
 
         let tripLI = queueWin.createElement('li');
         if (index == 0)
-            tripLI.setAttribute('class', 'card-panel green lighten-5 collection-item avatar');
+            tripLI.setAttribute('class', 'card-panel green lighten-5 collection-item avatar triplist-item');
         else
-            tripLI.setAttribute('class', 'card-panel white collection-item avatar');
-        tripLI.setAttribute('style', 'margin:3px');
+            tripLI.setAttribute('class', 'card-panel white collection-item avatar triplist-item');
 
         let tripIcon = queueWin.createElement('i');
-        tripIcon.setAttribute('class', 'material-icons circle');
-        tripIcon.setAttribute('style', 'font-size:25px');
+        tripIcon.setAttribute('class', 'material-icons circle triplist-icon');
+        switch (trip.type) {
+            case tripType.pickup:
+                tripIcon.classList.add('light-green-text');
+                tripIcon.classList.add('text-lighten-3');
+                break;
+            case tripType.dropoff:
+                tripIcon.classList.add('light-blue-text');
+                tripIcon.classList.add('text-lighten-4');
+                break;
+            default:
+                break;
+        }
         tripIcon.innerHTML = trip.type;
 
         let tripTitle = queueWin.createElement('span');
         tripTitle.setAttribute('class', 'title');
-        tripTitle.setAttribute('style', 'font-size:18px; font-weight:500;');
         tripTitle.innerHTML = trip.name;
 
         let tripAdr = queueWin.createElement('p');
@@ -160,7 +170,6 @@ function assignNewQueue(vehicle) {
         if (index == 0) {
             let progBar = queueWin.createElement('div');
             progBar.setAttribute('class', 'progress');
-            progBar.setAttribute('style', 'margin-bottom:-20px;');
             progBar.innerHTML = '<div id="prog' + vehicle.name + '" class="determinate"></div>';
             tripLI.appendChild(progBar);
         }
@@ -175,7 +184,7 @@ function clearCurrTrip(vehicle) {
 
     if (vehicle != 'unassigned' && tripList.firstChild != null) {
         setCurrTripActive(vehicle);
-    }      
+    }
 }
 
 function setCurrTripActive(vehicle) {
@@ -183,17 +192,22 @@ function setCurrTripActive(vehicle) {
 
     let progBar = queueWin.createElement('div');
     progBar.setAttribute('class', 'progress');
-    progBar.setAttribute('style', 'margin-bottom:-20px;');
     progBar.innerHTML = '<div id="prog' + vehicle.name + '" class="determinate"></div>';
 
-    tripList.firstChild.setAttribute('class', 'card-panel green lighten-5 collection-item avatar')
+    if (!isQueuePoped())
+        tripList.firstChild.setAttribute('class', 'card-panel green lighten-5 collection-item avatar triplist-item');
+    else
+        tripList.firstChild.setAttribute('class', 'card-panel green lighten-5 collection-item avatar panel-triplist-item');
     tripList.firstChild.appendChild(progBar);
 }
 
 function setCurrTripIdle(vehicle) {
     let tripList = queueWin.getElementById(vehicle.name).firstChild;
 
-    tripList.firstChild.setAttribute('class', 'card-panel yellow lighten-4 collection-item avatar');
+    if (!isQueuePoped())
+        tripList.firstChild.setAttribute('class', 'card-panel yellow lighten-4 collection-item avatar triplist-item');
+    else
+        tripList.firstChild.setAttribute('class', 'card-panel yellow lighten-4 collection-item avatar panel-triplist-item');
     tripList.firstChild.lastChild.firstChild.setAttribute('class', 'determinate yellow darken-1');
 
     let asgTrip = queueWin.createElement('p');
@@ -203,18 +217,10 @@ function setCurrTripIdle(vehicle) {
     tripList.firstChild.childNodes[1].appendChild(asgTrip);
 }
 
-function progressBar(vehicle) {
+function progressBar(vehicle, offset) {
     let progBarID = 'prog' + vehicle.name;
 
-    if (vehicle.progInterval == undefined) {
-        vehicle.progInterval = window.setInterval(() => {
-            queueWin.getElementById(progBarID).style.width = vehicle.offset;
-
-            if (vehicle.offset == '100%') {
-                vehicle.progInterval = window.clearInterval(vehicle.progInterval);
-            }
-        }, 10);
-    }
+    queueWin.getElementById(progBarID).style.width = offset;
 }
 
 function popQueue() {
@@ -226,13 +232,19 @@ function popQueue() {
         queueWin.getElementById('popqueue').addEventListener('click', dockQueue);
         queueWin.getElementById('queuepanel').classList.toggle('panelwind');
 
-        var lists = Array.from(queueWin.getElementById('lists').children);
-        lists.forEach(list => { list.firstChild.classList.replace('triplist', 'paneltriplist'); });
+        let lists = Array.from(queueWin.getElementById('lists').children);
+        lists.forEach(list => {
+            list.firstChild.classList.replace('triplist', 'paneltriplist');
+
+            let trips = Array.from(list.firstChild.childNodes);
+            trips.forEach(trip => {
+                trip.classList.replace('triplist-item', 'panel-triplist-item');
+            });
+        });
 
         queueWin.getElementById('popqueue').firstChild.innerHTML = 'exit_to_app';
         queueWin.getElementById('popqueue').removeAttribute('style');
         queueWin.getElementById('popqueue').setAttribute('data-tooltip', 'Dock');
-        queueWin.getElementById('helpqueue').style.display = 'none';
         queueWin.getElementById('filebutton').style.display = 'none';
         queueWin.getElementById('routetrip').style.visibility = 'collapse';
         queueWin.getElementById('swapmap').style.visibility = 'collapse';
@@ -250,20 +262,26 @@ function dockQueue() {
         document.getElementById('popqueue').addEventListener('click', popQueue);
         document.getElementById('queuepanel').classList.toggle('panelwind');
 
-        var lists = Array.from(document.getElementById('lists').children);
-        lists.forEach(list => { list.firstChild.classList.replace('paneltriplist', 'triplist'); });
+        let lists = Array.from(document.getElementById('lists').children);
+        lists.forEach(list => {
+            list.firstChild.classList.replace('paneltriplist', 'triplist');
+
+            let trips = Array.from(list.firstChild.childNodes);
+            trips.forEach(trip => {
+                trip.classList.replace('panel-triplist-item', 'triplist-item');
+            });
+        });
 
         document.getElementById('popqueue').firstChild.innerHTML = 'launch';
         document.getElementById('popqueue').setAttribute('style', 'margin-right:10px;');
         document.getElementById('popqueue').setAttribute('data-tooltip', 'Pop-out');
-        document.getElementById('helpqueue').style.display = 'block';
         document.getElementById('filebutton').style.display = 'block';
         document.getElementById('routetrip').style.visibility = 'visible';
         document.getElementById('swapmap').style.visibility = 'visible';
         document.getElementById('queueplaceholder').style.display = 'none';
 
         queueWin = removePopWindow(windowType.queue);
-        M.AutoInit();
+        materializeInit();
         checkMapResize();
     }
 }

@@ -1,9 +1,10 @@
+import { calcVehiclePassengersServed, calcVehicleIdle, calcVehicleMileage, calcVehicleRevenue } from './simMath.js';
 import { assignNewQueue, updateTripTab, progressBar, setCurrTripIdle, clearCurrTrip } from './tripQueue.js';
+import { updateGeneralStats, updateVehicleStats } from './statisticsList.js';
 import { drawTripPath, drawNextNIcons, drawNextIcon, map } from './map.js';
 import { vehStatus, tripType, colors } from './constants.js';
 import { simSpeedFactor, clockCurrTime } from './clock.js';
-import { calcAll } from './statisticsList.js';
-import { drawMaterial } from './chart.js';
+import { drawMaterial } from './barChart.js';
 import { vehicleEvent } from './log.js';
 
 class Vehicle {
@@ -15,10 +16,11 @@ class Vehicle {
         this.stops = stops;
         this.queue = queue;
 
-        this.status = vehStatus.depot;
+        this.status = vehStatus.starting;
         this.idling = false;
         this.pos = 0;
-        this.offset = '0%';
+        this.mapOffset = 0;
+        this.idleOffset = 0;
         this.MTpassengers = 0;
         this.FSpassengers = 0;
         this.markers = [];
@@ -27,13 +29,29 @@ class Vehicle {
         this.path;
 
         this.mapInterval = undefined;
-        this.progInterval = undefined;
         this.dispatcher = undefined;
+
+        //vehicle stats 
+        this.stats = {
+            served: 0,
+            idleTime: 0,
+            mileage: 0,
+            revenue: 0
+        };
+
+        this.formattedStats = {
+            served: this.stats.served,
+            idleTime: '0 min',
+            mileage: '0 mi',
+            revenue: '$ 0'
+        }
     }
 
     updateStatus() {
         if (this.stops.length == 0 && this.queue.length == 0)
             this.status = vehStatus.depot;
+        else if (this.queue.length <= this.stops.length)
+            this.status = vehStatus.loop;
         else
             this.status = vehStatus.route;
 
@@ -128,34 +146,45 @@ class Vehicle {
         if (this.markers.length == 0)
             drawNextNIcons(this, 3);
 
-        let count = (parseFloat(this.offset) * this.queue[this.pos].speed) * simSpeedFactor;
-        progressBar(this);
+        let count = (this.mapOffset * this.queue[this.pos].speed) * simSpeedFactor;
+        let icons = this.path.get("icons");
 
         this.mapInterval = window.setInterval(() => {
-            count = (++count);
-            let offset = count / (this.queue[this.pos].speed * simSpeedFactor);
-            let icons = this.path.get("icons");
+            if (!this.idling) {
+                count = ++count;
+                this.mapOffset = count / (this.queue[this.pos].speed * simSpeedFactor);
+                icons[1].offset = (this.mapOffset > 99) ? '100%' : this.mapOffset + '%';
+                this.path.set("icons", icons);
+                progressBar(this, icons[1].offset);
 
-            icons[1].offset = (offset > 99) ? '100%' : offset + '%';
-            this.path.set("icons", icons);
-            this.offset = icons[1].offset;
+                if (this.mapOffset > 99) {
+                    this.mapInterval = window.clearInterval(this.mapInterval);
+                    drawNextIcon(this, 3);
 
-            if (offset > 99) {
-                this.mapInterval = window.clearInterval(this.mapInterval);
-
-                drawNextIcon(this, 3);
-
-                if (this.queue[this.pos].idleTime != 0 && !this.idling) {
-                    setCurrTripIdle(this);
-                    this.idling = true;
+                    if (this.queue[this.pos].idleTime != 0) {
+                        setCurrTripIdle(this);
+                        this.idling = true;
+                    }
                 }
+            }
+            else {
+                this.mapInterval = window.clearInterval(this.mapInterval);
+            }
+            if (typeof this.mapInterval === 'undefined') {
+                count = (this.idling) ? (this.idleOffset * this.queue[this.pos].idleTime) * simSpeedFactor : 100;
 
-                if (typeof this.mapInterval === 'undefined') {
-                    this.mapInterval = setTimeout(() => {
+                this.mapInterval = setInterval(() => {
+                    if (this.idleOffset < 100) {
+                        count = ++count;
+                        this.idleOffset = count / (this.queue[this.pos].idleTime * simSpeedFactor);
+                    }
+                    else {
                         this.mapInterval = window.clearInterval(this.mapInterval);
-                        this.offset = '0%';
-                        this.clearPath();
+                        this.progInterval = window.clearInterval(this.progInterval);
                         this.idling = false;
+                        this.mapOffset = 0;
+                        this.idleOffset = 0;
+                        this.clearPath();
 
                         clearCurrTrip(this);
 
@@ -164,8 +193,9 @@ class Vehicle {
                         vehicleEvent(this, this.pos);
 
                         if (this.tripIsPickup(this.pos))
-                            calcAll(this.queue[this.pos]);
+                            updateGeneralStats(this.queue[this.pos]);
 
+                        this.updateStats(this.queue[this.pos]);
                         drawMaterial();
 
                         if (this.pos == (this.queue.length - 1) && this.stops.length != 0) {
@@ -184,40 +214,53 @@ class Vehicle {
                             ++this.pos;
                             this.animate();
                         }
-                    }, 1000 * (simSpeedFactor * this.queue[this.pos].idleTime));
-                }
+                    }
+                }, 10);
             }
         }, 10);
+    }
+
+    //task: move to shared mem buffer /w web worker doing all the costly math operations
+    async updateStats(trip) {
+        if (trip.type == tripType.pickup) {
+            calcVehiclePassengersServed(this);
+            calcVehicleRevenue(this);
+        }
+        calcVehicleIdle(this);
+        calcVehicleMileage(this);
+
+        updateVehicleStats(this);
     }
 
     autoDispatch() {
         if (typeof this.dispatcher === 'undefined') {
             this.dispatcher = window.setInterval(() => {
-                if (this.queue.length != 0 && this.startTime <= (clockCurrTime + 1) && this.status == vehStatus.depot) {
+                if (this.queue.length != 0 && this.startTime <= (clockCurrTime + 1) && this.status == vehStatus.starting) {
                     this.dispatcher = window.clearInterval(this.dispatcher);
                     this.updateStatus();
                     this.animate();
-                    progressBar(this);
                 }
             }, (1000 * simSpeedFactor));
         }
     }
 
     forceDispatch() {
-        if (this.status != vehStatus.depot) {
+        if (this.status == vehStatus.route || this.status == vehStatus.loop) {
             this.animate();
-            progressBar(this);
         }
     }
 
     stopDispatch() {
-        this.dispatcher = undefined;
+        this.dispatcher = window.clearInterval(this.dispatcher);
     }
 
     clearIntervals() {
         this.mapInterval = window.clearInterval(this.mapInterval);
-        this.progInterval = window.clearInterval(this.progInterval);
         this.dispatcher = window.clearInterval(this.dispatcher);
+    }
+
+    hasFinished() {
+        return this.status == vehStatus.depot || this.status == vehStatus.loop;
     }
 }
 
