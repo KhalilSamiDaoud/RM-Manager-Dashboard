@@ -26,17 +26,61 @@
     <!--header / nav-->
     <nav class="yellow darken-2 header-padding">
         <img class="brand-logo nav-bar-logo hide-on-med-and-down" style="margin-left: 10px;" src="media/logo.png" />
-        <a id="headertitle" class="brand-logo center" style="font-weight:300;">ERSA Simulation</a>
-        <ul class="right hide-on-med-and-down">
-            <li><a class="waves-effect waves-light btn grey darken-1 modal-trigger" data-target="modalsettings">settings<i class="material-icons left">settings</i></a></li>
-            <li><a class="waves-effect waves-light btn grey darken-1 modal-trigger" data-target="modalhelp">help<i class="material-icons left">help_outline</i></a></li>
-            <li><a class="waves-effect waves-light btn grey darken-1 modal-trigger" data-target="modaldemo">request demo<i class="material-icons left">insights</i></a></li>
+        <ul>
+            <li id="headertitle" style="white-space:nowrap;"><div class="brand-logo center" style="font-weight:300; display:inline-block">ERSA Simulation</div></li>
+        </ul>
+        <ul class="right">
+            <li>
+                <a class="dropdown-trigger btn grey darken-1" style="border-radius: 21px; height: 42px; line-height: 42px; width: 185px;" href="#" data-target="dropdown1">
+                    <i class="material-icons left" style="font-size:28px;">notification_important</i>
+                    <span class="new badge red lighten-2 right" style="margin-top:10px; margin-right:5px;">7</span>
+                    alerts
+                </a>
+
+                <!-- Dropdown Structure -->
+                <ul id="dropdown1" class="dropdown-content">
+                    <li><a href="#!" class="black-text">Late Arival<span class="new badge orange lighten-1 right">3</span></a></li>
+                    <li><a href="#!" class="black-text">Breakdown<span class="new badge right">1</span></a></li>
+                    <li><a href="#!" class="black-text">No-Show<span class="new badge right">1</span></a></li>
+                    <li><a href="#!" class="black-text">Manifest<span class="new badge right">2</span></a></li>
+                    <li class="divider"></li>
+                    <li><a href="#!" class="black-text">All Alerts<span class="new badge red lighten-2 right">7</span></a></li>
+                </ul>
+            </li>
+            <li>
+                <div class="input-field white-text header-date-picker grey darken-1 z-depth-1 date-picker-styles">
+                    <i class="small material-icons prefix white-text" style="margin-top: -13px;">today</i>
+                    <input id="doipicker" type="text" class="datepicker white-text" style="transform: translateY(-10px);">
+                </div>
+            </li>
+            <li>
+                <a id="livebutton" class="waves-effect waves-light btn-floating btn tooltipped red hide-on-med-and-down" data-position="bottom" data-tooltip="Return to live view">
+                    <i class="material-icons">podcasts</i>
+                </a>
+            </li>
+            <li>
+                <a id="filebutton" class="waves-effect waves-light btn-floating btn tooltipped grey darken-1 hide-on-med-and-down" data-position="bottom" data-tooltip="Start simulation from CSV" style="margin-left: 5px;">
+                    <i class="material-icons">upload_file</i>
+                </a>
+            </li>
+            <li>
+                <div class="header-divider hide-on-med-and-down"></div>
+            </li>
+            <li>
+                <a id="helpbutton" class="waves-effect waves-light btn-floating btn tooltipped grey darken-1 modal-trigger hide-on-med-and-down" data-target="modalhelp" data-tooltip="Help" style="margin-left: 5px;">
+                    <i class="material-icons">help_outline</i>
+                </a>
+            </li>
+            <li>
+                <a id="settingsbutton" class="waves-effect waves-light btn-floating btn tooltipped grey darken-1 modal-trigger hide-on-med-and-down" data-target="modalsettings" data-tooltip="Settings" style="margin-left: 0px;">
+                    <i class="material-icons">settings</i>
+                </a>
+            </li>
         </ul>
         <ul id="nav-mobile" class="sidenav">
             <li><img class="nav-bar-logo-mobile" src="media/logo.png" /><div class="divider"></div></li>
             <li><a class="waves-effect modal-trigger" data-target="modaldemo">settings<i class="material-icons left">settings</i></a></li>
             <li><a class="waves-effect modal-trigger" data-target="modalhelp">help<i class="material-icons left">help_outline</i></a></li>
-            <li><a class="waves-effect modal-trigger" data-target="modaldemo">request demo<i class="material-icons left">insights</i></a></li>
         </ul>
         <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
     </nav>
@@ -52,7 +96,6 @@
                         <h4 class="truncate panelheader col s6">Trip Queue</h4>
                         <div class="no-padding no-margin col s6">
                             <a id="popqueue" class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
-                            <a id="filebutton" class="btn-floating btn-medium tooltipped waves-effect waves-light yellow darken-2 right" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Set trips from CSV"><i class="material-icons">upload_file</i></a>
                         </div>
                     </div>
 
@@ -66,9 +109,16 @@
                         <!-- Content filled in tripQueue.js-->
                     </div>
 
-                    <div id="queuebuttons" class="queuefooter">
-                        <a id="routetrip" class="waves-effect waves-light btn-large yellow darken-2 routetripbutton modal-trigger" data-target="modalqr"><i class="material-icons left">qr_code_scanner</i>add trip</a>
-                        <a id="swapmap" class="waves-effect waves-light btn-large yellow darken-2 swapmapbutton"><i class="material-icons left">map</i>swap map</a>
+                    <div id="zonepicker" class="queuefooter">
+                        <div class="input-field col s12 center">
+                            <select multiple class="white-text">
+                                <option value="0" selected>Show All Zones</option>
+                                <option value="1">Zone 1</option>
+                                <option value="2">Zone 2</option>
+                                <option value="3"><b>Zone 3</b></option>
+                            </select>
+                            <label class="white-text" style="font-size: 16px">Zone Filter:</label>
+                        </div>
                     </div>
                 </div>
                 <div id="queueplaceholder" class="queuepanelph" style="display:none"><p>Queue: un-docked</p></div>
@@ -277,62 +327,6 @@
             </div>
         </div>
 
-        <!--request demo modal-->
-        <div id="modaldemo" class="modal modal-fixed-footer white">
-            <div class="modal-content scrollbar-primary">
-                <div class="row">
-                    <h3 style="font-weight: 300;">Request a Demo</h3>
-                    <p style="font-weight: 400; font-size: 16px;">Request a demo from IT Curves full range of integrated online solutions</p>
-                    <div class="divider"></div>
-                </div>
-                <div class="row">
-                    <form class="col s12">
-                        <div class="row">
-                            <div class="input-field col s6">
-                                <i class="material-icons prefix">person_outline</i>
-                                <input id="first_name" type="text" class="validate">
-                                <label for="first_name">First Name</label>
-                            </div>
-                            <div class="input-field col s6">
-                                <input id="last_name" type="text" class="validate">
-                                <label for="last_name">Last Name</label>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="input-field col s12">
-                                <i class="material-icons prefix">mail_outline</i>
-                                <input id="email" type="email" class="validate">
-                                <label for="email">Email</label>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="input-field col s12">
-                                <i class="material-icons prefix">edit_note</i>
-                                <input id="notes" type="text" class="validate">
-                                <label for="notes">Notes (Optional)</label>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="input-field col s12">
-                                <i class="material-icons prefix">wysiwyg</i>
-                                <select multiple>
-                                  <option value="0">MRMS</option>
-                                   <option value="1">WMR</option>
-                                   <option value="2">Simulation & Planning</option>
-                                   <option value="3">Rides to Health</option>
-                                </select>
-                                <label>Select ITC packages</label>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="modal-footer">
-              <a href="#!" class="modal-close waves-effect waves-green btn-flat"><i class="material-icons left">forward_to_inbox</i>submit</a>
-              <a href="#!" class="modal-close waves-effect waves-green btn-flat"><i class="material-icons left">close</i>close</a>
-            </div>
-          </div>
-
         <!--fare calc modal-->
         <div id="modalfare" class="modal white">
             <div class="modal-content">
@@ -400,7 +394,7 @@
 
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC3NIEDkRjSnmYseoNvVGkX-lPbssaPiHU&libraries=&v=weekly" async></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC3NIEDkRjSnmYseoNvVGkX-lPbssaPiHU&libraries=geometry&v=weekly" async></script>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

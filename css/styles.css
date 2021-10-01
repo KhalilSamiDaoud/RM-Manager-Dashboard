@@ -6,7 +6,7 @@ body {
 
 /* update this calc when the header / tab view is modified */
 .autoheight {
-  min-height: calc(100vh - 86px);
+  min-height: calc(100vh - 87px);
 }
 
 .box {
@@ -61,8 +61,8 @@ body {
 }
 
 .header-padding {
-  padding-left: 30px;
-  padding-right: 30px;
+  padding-left: 20px;
+  padding-right: 10px;
 }
 
 .scrollbar {
@@ -382,7 +382,7 @@ div#modalfare {
 
 .mapdefault {
   border-radius: 15px;
-  height: 86vh;
+  height: calc(100vh - 121px);
   margin-left: -30px;
   margin-right: -30px;
 }
@@ -419,11 +419,7 @@ div#modalfare {
 }
 
 .queuefooter {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  height: fit-content;
+  height: 50px;
 }
 
 .routetripbutton {
@@ -512,22 +508,18 @@ div#modalfare {
 }
 
 .clock-bar {
-  position: fixed;
-  top: 79px;
-  left: 43%;
+  position: absolute;
+  top: 0px;
+  left: 50%;
   z-index: 98;
   background: rgb(0, 0, 0, 0.5);
-  width: 14%;
-  min-width: fit-content;
+  width: fit-content;
   height: min-content;
   border-radius: 3px;
   padding-left: 10px;
   padding-top: 4px;
   padding-bottom: 2px;
-}
-
-.clock-bar-full {
-  top: 64px !important;
+  transform: translateX(-50%);
 }
 
 /* docked */
@@ -590,21 +582,6 @@ div#modalfare {
   margin-bottom: -20px !important;
   margin-left: clamp(10px, 1.25vw, 70px) !important;
   max-width: 98%;
-}
-
-.slide-up {
-  min-height: 0px !important;
-  max-height: 0px !important;
-  overflow: hidden !important;
-  margin-bottom: 0px !important;
-  height: 0px !important;
-  padding-top: 0px !important;
-  padding-bottom: 0px !important;
-  transition: 0.33s all ease-out !important;
-  -moz-transition: 0.33s all ease-out !important;
-  -webkit-transition: 0.33s all ease-out !important;
-  -o-transition: 0.33s all ease-out !important;
-  -ms-transition: 0.33s all ease-out !important;
 }
 
 .statscontent {
@@ -747,4 +724,76 @@ div#modalfare {
   border-radius: 10px;
   padding-right: 10px;
   padding-left: 10px;
+}
+
+.header-notification {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 18px;
+  border-color: white;
+  line-height: 24px;
+  font-size: 24px;
+  font-weight: 400;
+  padding: 5px;
+  padding-right: 10px;
+  margin: 10px;
+  display: inline-block;
+  height: 36px;
+}
+
+.header-notification .material-icons {
+    font-size: 24px;
+    line-height:24px;
+}
+
+.datepicker-table tbody {
+  color:black !important;
+}
+
+.date-picker-styles {
+  height: 42px !important; 
+  width: 165px !important; 
+  padding-left: 20px !important; 
+  margin-top: 11px !important; 
+  overflow:hidden !important; 
+  border-radius: 21px !important;
+}
+
+.select-wrapper .caret {
+  fill: white !important;
+}
+
+#zonepicker .select-wrapper .select-dropdown {
+  color: white !important;
+}
+
+.header-divider {
+  border-color: white; 
+  height: 44px; 
+  border-left: 1px; 
+  border-right:0px; 
+  border-style: solid; 
+  margin:10px; 
+  width:0px;
+   margin-left: 0px;
+}
+
+.zone-info {
+    font-size: 18px;
+    margin: 8px !important;
+}
+
+.zone-info b {
+  font-size: 24px !important;
+}
+
+.zone-info p {
+   font-size: 18px !important;
+}
+
+.live-vehicle-label {
+  transform: translateY(125%);
+  background-color: grey;
+  border-radius: 12px;
+  padding: 5px;
 }

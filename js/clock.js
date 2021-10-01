@@ -1,5 +1,6 @@
+import { stopSimulation, curMode } from './main.js';
 import { vehicles } from './vehicleList.js';
-import { stopSimulation } from './main.js';
+import { initMode } from './constants.js';
 
 document.getElementById('normalspeed').addEventListener('click', setSpeedNormal);
 document.getElementById('fastspeed').addEventListener('click', setSpeedFast);
@@ -13,28 +14,33 @@ var simSpeedFactor = 1; // 1 second = 1 minute  @ factor = 1
 let clockInterval;
 
 clockStartTime = clockCurrTime = 0;
-initClock();
 
 function initClock(startTime = 0) {
-    clockCurrTime = clockStartTime = startTime;
+    if (curMode == initMode.live) {
+        clockCurrTime = clockStartTime = startTime;
 
-    clock.innerHTML = timeToString(clockStartTime);
+        clock.innerHTML = timeToString(clockStartTime);
+
+        btnNormal.style.display = 'none';
+        btnFast.style.display = 'none';
+    }
+    else {
+        setClock();
+        btnNormal.style.display = 'block';
+        btnFast.style.display = 'block';
+    }
 }
 
-function timeToString(time = clockCurrTime) {
-    let hours = Math.floor(time / 60);
-    let minutes = time % 60;
-
-    if (hours < 12)
-        return (hours == 0) ? ("00" + hours + 12).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM' : ("00" + hours).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM';
-    else
-        return (hours == 24) ? ("00" + (hours - 12)).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM' : ("00" + (hours - 12)).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' PM';
-}
-
-function startClock() {
+function startSIMClock() {
     clockInterval = window.setInterval(() => {
         tickClock();
     }, (1000 * simSpeedFactor));
+}
+
+function startSYSClock() {
+    clockInterval = window.setInterval(() => {
+        setClock();
+    }, (15000));
 }
 
 function stopClock() {
@@ -48,8 +54,27 @@ function tickClock() {
         clock.innerHTML = timeToString(++clockCurrTime);
 }
 
+function setClock() {
+    let sysTime = new Date();
+
+    clock.innerText = sysTime.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit'
+    });
+}
+
 function clearClock() {
     initClock(1440);
+}
+
+function timeToString(time = clockCurrTime) {
+    let hours = Math.floor(time / 60);
+    let minutes = time % 60;
+
+    if (hours < 12)
+        return (hours == 0) ? ("00" + hours + 12).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM' : ("00" + hours).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM';
+    else
+        return (hours == 24) ? ("00" + (hours - 12)).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM' : ("00" + (hours - 12)).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' PM';
 }
 
 function updateSimSpeed() {
@@ -86,4 +111,4 @@ function setSpeedNormal() {
     updateSimSpeed();
 }
 
-export { initClock, startClock, stopClock, timeToString, simSpeedFactor, clockCurrTime, clearClock };
+export { initClock, startSIMClock, startSYSClock, stopClock, timeToString, simSpeedFactor, clockCurrTime, clearClock };

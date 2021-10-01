@@ -1,24 +1,30 @@
 import { createGeneralStats, createVehicleStats, clearGeneralStats, clearVehicleStats } from './statisticsList.js';
+import { initCoords, initMode, initEventEntry, liveNotification, SimulationNotification, colors } from './constants.js';
 import { createTripTabs, createTripLists, clearTripTabs, clearTripLists } from './tripQueue.js';
-import { initCoords, initMode, initEventEntry, simArea } from './constants.js';
+import { initClock, startSYSClock, startSIMClock, stopClock } from './clock.js';
 import { initMap, createVehicleIcon, drawStaticIcons } from './map.js';
 import { populateRandVehicles, vehicles } from './vehicleList.js';
-import { startClock, stopClock } from './clock.js';
+import { initEvent, lateEvent, breakDownEvent, noShowEvent, driverEvent } from './log.js';
+import { initCalendar, updateLiveButton } from './calendar.js';
 import { drawMaterial } from './barChart.js';
-import { APIinit } from './APIinput.js';
-import { initEvent } from './log.js';
+import { Zone } from './zone.js';
+import { LiveVehicle } from './liveVehicle.js';
 
 let curMode = initMode.none;
 let prevInitalized = false;
 
-function initSimulation(mode, coords = initCoords[0]) {
+function initSimulation(mode = initMode.none, startTime = 0, coords = initCoords[0]) {
+    curMode = mode;
+    updateLiveButton(mode);
+    initCalendar(mode);
+    initClock(startTime);
     initMap(coords);
 
     if (prevInitalized) {
         clearTripTabs();
         clearTripLists();
         clearGeneralStats();
-        clearVehicleStats()
+        clearVehicleStats();
         stopClock();
     }
 
@@ -26,20 +32,27 @@ function initSimulation(mode, coords = initCoords[0]) {
     switch (mode) {
         case initMode.test:
             populateRandVehicles(3);
-            setHeaderTitle(simArea.DC);
             initEvent(initEventEntry.test);
             break;
         case initMode.file:
-            setHeaderTitle(simArea.Cust);
             initEvent(initEventEntry.file);
             break;
         case initMode.API:
-            setHeaderTitle(simArea.DC);
             initEvent(initEventEntry.API);
+            break;
+        case initMode.live:
+            populateRandVehicles(3);
+            //remove me also
+            let x = new Zone('Test Zone 1', colors[0]);
+            x.addZone();
+            new LiveVehicle('#001-01', 0, colors[0]);
+            new LiveVehicle('#001-02', 0, colors[0]);
+            initEvent(initEventEntry.live);
             break;
         default:
             return;
     }
+
     createTripTabs();
     createTripLists();
     createGeneralStats();
@@ -59,23 +72,39 @@ function initSimulation(mode, coords = initCoords[0]) {
         materializeInit();
 
     drawMaterial();
-    startClock();
 
     if (!prevInitalized)
         prevInitalized = true;
 
-    curMode = mode;
+    if (mode == initMode.live) {
+        //temp REMOVE ME
+        lateEvent(1, 5, '11:55');
+        lateEvent(2, 12, '11:48');
+        lateEvent(3, 20, '11:40');
+        breakDownEvent();
+        noShowEvent('11:55');
+        driverEvent(1);
+        driverEvent(2);
+
+        setHeaderTitle('Dashboard', liveNotification);
+        startSYSClock();
+    }
+    else {
+        setHeaderTitle('Dashboard', SimulationNotification);
+        startSIMClock()
+    }
 }
 
 async function startSequence() {
-    try {
-        await APIinit();
-    }
-    catch (err) {
-        console.log(err);
-        initEvent(initEventEntry.APIError);
-        initSimulation(initMode.test);
-    }
+    initSimulation(initMode.live);
+    // try {
+    //     await APIinit();
+    // }
+    // catch (err) {
+    //     console.log(err);
+    //     initEvent(initEventEntry.APIError);
+    //     initSimulation(initMode.test);
+    // }
 }
 
 function stopSimulation() {
@@ -89,6 +118,7 @@ function materializeInit() {
     if (!prevInitalized) {
         $('.sidenav').sidenav();
         $('.preloader').fadeOut('slow');
+        $('.dropdown-trigger').dropdown();
         $('select').formSelect();
     }
     $('.modal').modal();
@@ -104,7 +134,7 @@ function materializeReload() {
 
 function setHeaderTitle(area, specialMsg = '') {
     document.title = area;
-    document.getElementById('headertitle').innerHTML = area + specialMsg;
+    document.getElementById('headertitle').firstChild.innerHTML = area + specialMsg;
 }
 
 function main() {

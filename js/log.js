@@ -1,5 +1,5 @@
+import { tripType, windowType, eventSeverity, warningColors } from './constants.js';
 import { createPopWindow, removePopWindow } from './popWindowList.js';
-import { tripType, windowType } from './constants.js';
 import { timeToString } from './clock.js';
 import { checkMapResize } from './map.js';
 
@@ -9,9 +9,9 @@ document.getElementById('poplog').addEventListener('click', popLog);
 var logWin = document;
 let logBox = logWin.getElementById('logbox');
 
-function addEvent(innerElems = []) {
+function addEvent(innerElems = [], colorClass='white') {
     let entry = logWin.createElement('div');
-    entry.setAttribute('class', 'z-depth-1 slide ' + ((logWin == document) ? 'logentry' : 'logpanelentry'));
+    entry.setAttribute('class', 'z-depth-1 slide ' + colorClass + ((logWin == document) ? ' logentry' : ' logpanelentry'));
 
     if (innerElems.length > 0)
         innerElems.forEach(elem => {
@@ -19,7 +19,7 @@ function addEvent(innerElems = []) {
         });
 
     let entryTime = logWin.createElement('a');
-    entryTime.setAttribute('class', 'right cyan-text');
+    entryTime.setAttribute('class', 'right cyan-text text-darken-2');
     entryTime.innerHTML = timeToString();
 
     entry.appendChild(entryTime);
@@ -115,6 +115,90 @@ function vehicleEvent(vehicle, pos) {
     addEvent(stpElems);
 }
 
+//stub - needs proper implementation 
+function lateEvent(severity = eventSeverity.none, mins=5, req='12:00') {
+    let colorClass = getColorClass(severity);
+    let stpElems = [];
+
+    let entryIcon = logWin.createElement('i');
+    entryIcon.setAttribute('class', 'material-icons grey-text left');
+    entryIcon.innerText = 'schedule';
+    stpElems.push(entryIcon);
+
+    let entryText = logWin.createElement('p');
+    entryText.innerHTML = 'XXXX is now <b>' + mins + ' minutes</b> late to pick-up <b>[Khalil D. Requested ' + req +']</b>';
+    stpElems.push(entryText);
+
+    addEvent(stpElems, colorClass);
+}
+
+//stub - needs proper implementation 
+function breakDownEvent() {
+    let stpElems = [];
+
+    let entryIcon = logWin.createElement('i');
+    entryIcon.setAttribute('class', 'material-icons grey-text left');
+    entryIcon.innerText = 'warning_amber';
+    stpElems.push(entryIcon);
+
+    let entryText = logWin.createElement('p');
+    entryText.innerHTML = 'XXXX is reporting a breakdown @ 17146 Downing Street';
+    stpElems.push(entryText);
+
+    addEvent(stpElems, warningColors[2].class);
+}
+
+//stub - needs proper implementation 
+function driverEvent(type=1) {
+    let stpElems = [];
+
+    let entryIcon = logWin.createElement('i');
+    entryIcon.setAttribute('class', 'material-icons grey-text left');
+    if (type == 1)
+        entryIcon.innerText = 'content_paste_off';
+    else
+        entryIcon.innerText = 'pending_actions';
+    stpElems.push(entryIcon);
+
+    let entryText = logWin.createElement('p');
+    if (type == 1)
+        entryText.innerHTML = 'XXXX has rejected a manifest offer';
+    else 
+        entryText.innerHTML = 'XXXX has not accepted or been assigned a manifest';
+    stpElems.push(entryText);
+
+    addEvent(stpElems, warningColors[0].class);
+}
+
+//stub - needs proper implementation
+function noShowEvent(req = '12:00') {
+    let stpElems = [];
+
+    let entryIcon = logWin.createElement('i');
+    entryIcon.setAttribute('class', 'material-icons grey-text left');
+    entryIcon.innerText = 'group_remove';
+    stpElems.push(entryIcon);
+
+    let entryText = logWin.createElement('p');
+    entryText.innerHTML = 'XXXX is reporting a no-show <b>[Khalil D. Requested ' + req +']</b>';
+    stpElems.push(entryText);
+
+    addEvent(stpElems, warningColors[0].class);
+}
+
+function getColorClass(severity) {
+    switch (severity) {
+        case eventSeverity.low:
+            return warningColors[0].class;
+        case eventSeverity.med:
+            return warningColors[1].class;
+        case eventSeverity.high:
+            return warningColors[2].class;
+        default:
+            return warningColors[3].class;
+    }
+}
+
 function popLog() {
     if (!isLogPoped()) {
         logWin = createPopWindow(windowType.log, 'ERSA - Log');
@@ -174,4 +258,4 @@ function isLogPoped() {
     return logWin != document;
 }
 
-export { fileEvent, vehicleEvent, initEvent, isLogPoped, dockLog };
+export { fileEvent, vehicleEvent, initEvent, lateEvent, breakDownEvent, noShowEvent, driverEvent, isLogPoped, dockLog };

@@ -1,7 +1,6 @@
 import { vehicles, createVehicle, clearVehicles, sortVehicleList } from './vehicleList.js';
 import { calcWaitTime } from './simMath.js';
 import { tripType } from './constants.js';
-import { initClock } from './clock.js';
 import { Trip } from './trip.js';
 
 function findColIndex(tripListObj) {
@@ -49,7 +48,6 @@ function fullParse(records, fileColumns) {
     getVehiclesFromJSON(records, fileColumns);
     getFixedStopsFromJSON(records, fileColumns);
     getQueueFromJSON(records, fileColumns);
-    getClockTimes(records, fileColumns);
 }
 
 // mode 0 = time array [hr,min,sec]
@@ -97,7 +95,7 @@ function getTripType(record, fileColumns) {
     }
 }
 
-function getClockTimes(records, fileColumns) {
+function getClockStartTime(records, fileColumns) {
     let startTime = Number.MAX_VALUE;
 
     records.forEach(record => {
@@ -107,10 +105,10 @@ function getClockTimes(records, fileColumns) {
         }
     });
 
-    initClock(Math.floor(startTime));
+    return Math.floor(startTime);
 }
 
-function findCenter(records, fileColumns) {
+function getMapCenter(records, fileColumns) {
     if (records[0][fileColumns.typeIndex] == 'StartDepot')
         return { lat: records[0][fileColumns.latIndex], lng: records[0][fileColumns.longIndex] };
     else if (records[records.length - 1][fileColumns.typeIndex] == 'EndDepot')
@@ -220,4 +218,4 @@ function getQueueFromJSON(records, fileColumns) {
     });
 }
 
-export { findColIndex, findCenter, fullParse, parseTime, trimStreetNames, findVehicleIndex }
+export { findColIndex, getMapCenter, fullParse, parseTime, trimStreetNames, findVehicleIndex, getClockStartTime }

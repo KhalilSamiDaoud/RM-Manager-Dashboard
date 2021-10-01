@@ -45,8 +45,7 @@ function convertToTrips(jsonList) {
 }
 
 function createVehicle(VehID, VehCap, startTime) {
-    let veh = new Vehicle(VehID, VehCap, colors[vehicles.length], startTime);
-    vehicles.push(veh);
+    vehicles.push(new Vehicle(VehID, VehCap, colors[vehicles.length], startTime));
 }
 
 function clearVehicles() {

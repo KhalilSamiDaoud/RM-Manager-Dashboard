@@ -1,5 +1,5 @@
 from flask_cors import CORS, cross_origin
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_restful import Api
 import pandas as pd
 import pyodbc
@@ -22,17 +22,13 @@ def page():
 @app.route('/get-trips', methods=['GET'])
 @cross_origin()
 def get_trips():
-    date = request.args.get('date')
-
     compiled_data = []
     response = ""
 
     conn = pyodbc.connect(constants.DB_CONNECT_CRED)
 
-    df = pd.read_sql(constants.DB_QUERY_TRIPS.replace('{{ date }}', date), conn)
-    #df = df.sort_values(["RouteNo", "StopNumber"], ascending=(True, True))
-
-    print(df)
+    df = pd.read_sql(constants.DB_QUERY_TRIPS, conn)
+    df = df.sort_values(["RouteNo", "StopNumber"], ascending=(True, True))
 
     for index, row in df.iterrows():
         format_row(row)

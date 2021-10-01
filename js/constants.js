@@ -1,10 +1,17 @@
 //JS style enums
-const initMode = Object.freeze({ test: 0, file: 1, API: 2, none: 3 });
-const initEventEntry = Object.freeze({ test: 'Initialized in test mode', file: 'Initialized from file', API: 'Initialized from API', APIError: 'Failed to initialize from API' })
+const initMode = Object.freeze({ test: 0, file: 1, API: 2, live: 3, none: 4 });
 const tripType = Object.freeze({ pickup: 'hail', dropoff: 'follow_the_signs', fixedstop: 'directions_bus', depot: 'emoji_transportation', unknown: 'not_listed_location' });
-const simArea = Object.freeze({ DC: 'DC Area', LA: 'LA Area', Cust: 'Custom Area' });
+const simArea = Object.freeze({ DC: 'DC Area', Cust: 'Custom Area' });
 const windowType = Object.freeze({ statistics: 'statistics', log: 'eventlog', queue: 'tripqueue', unknown: 'unknown' });
 const vehStatus = Object.freeze({ starting: 0, depot: 1, route: 2, loop: 3 });
+const eventSeverity = Object.freeze({ none: 0, low: 1, med: 2, high: 3 });
+const initEventEntry = Object.freeze({ 
+    test: 'Initialized in test mode', 
+    file: 'Initialized from file', 
+    API: 'Initialized from API', 
+    live: 'Initialized with live feed',
+    APIError: 'Failed to initialize from API' 
+});
 
 //API Consts
 const APIColumns = Object.freeze({
@@ -22,13 +29,15 @@ const APIColumns = Object.freeze({
     estDistanceIndex: 11
 });
 
-const APIURL = 'http://192.168.13.91:1235/';
-const APIFunctions = Object.freeze({ getTrips: 'get-trips' });
+const APIURL = 'http://192.168.8.25:1235/';
+const APIFunctions = Object.freeze({ getTrips: 'get-trips?date=' });
 
 //Const. values
 const vehicleIDletter = 'ABCD';
 const windowOptions = 'toolbar=0,location=0,directories=0,status=0,menubar=0,scrollbars=1,resizable=1,width=400,height=800,';
 const dstatsTableHeader = '<tr><th>Vehicle</th><th>Passengers Served</th><th>Idle Time</th><th>Milage</th><th>Revenue</th><th>Avg. Trip Distance</th><th>Avg. Trip Time</th><th>Avg. Wait Time</th></tr>';
+const SimulationNotification = '<div class="white-text header-notification"><i class="material-icons blue-text">smart_toy</i>SIMULATED</div>';
+const liveNotification = '<div class="white-text header-notification"><i class="material-icons red-text">circle</i>LIVE</div>';
 
 const colors =
     [
@@ -43,6 +52,23 @@ const colors =
         { hex: '#8d6e63', class: 'brown-text text-lighten-1' },
         { hex: '#ff5722', class: 'deep-orange-text' },
         { hex: '#000000', class: 'black-text' }
+    ];
+
+const warningColors = 
+    [
+        { hex: '#fff9c4', class: 'yellow lighten-4' },
+        { hex: '#ffe0b2', class: 'orange lighten-4' },
+        { hex: '#ef9a9a', class: 'red lighten-4' },
+        { hex: '#ffffff', class: 'white' }
+    ]
+
+const defaultZonePath =
+    [
+        { lat: 38.941783, lng: -77.1219338 },
+        { lat: 38.954390, lng: -77.1088367 },
+        { lat: 38.948603, lng: -77.1007886 },
+        { lat: 38.917357, lng: -77.0579591 },
+        { lat: 38.904801, lng: -77.0822492 },
     ];
 
 const initCoords =
@@ -72,7 +98,7 @@ const fixedStopLoopsLA = [
         { name: 'Fixed Stop [1]', type: tripType.fixedstop, PUcoords: { lat: 34.057226, lng: -118.233546 }, DOcoords: { lat: 34.054226, lng: -118.193546 }, PUadr: '123 street', DOadr: '456 street', speed: 3, idleTime: 3 },
         { name: 'Fixed Stop [2]', type: tripType.fixedstop, PUcoords: { lat: 34.054226, lng: -118.193546 }, DOcoords: { lat: 34.054226, lng: -118.233546 }, PUadr: '456 street', DOadr: '777 street', speed: 5, idleTime: 4 },
         { name: 'Fixed Stop [3]', type: tripType.fixedstop, PUcoords: { lat: 34.054226, lng: -118.233546 }, DOcoords: { lat: 34.057226, lng: -118.233546 }, PUadr: '777 street', DOadr: '888 street', speed: 1, idleTime: 4 },
-    ],];
+    ]];
 
 const randTrip = { name: 'Trip 1', type: tripType.pickup, PUcoords: { lat: 38.849493, lng: -77.103652 }, DOcoords: { lat: 38.878080, lng: -77.150429 }, PUadr: '123 street', DOadr: '456 street', speed: 12, idleTime: 2 };
 
@@ -102,7 +128,8 @@ var stopSVG = ['<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/sv
 const dashedLineSymbol = { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 };
 
 export {
-    initMode, tripType, vehStatus, simArea, windowType, vehicleIDletter, windowOptions, colors, initCoords, fixedStopLoopsDC, fixedStopLoopsLA,
-    randTrip, depotSVG, dropoffSVG, pickupSVG, stopSVG, dashedLineSymbol, initEventEntry, APIColumns, APIURL, APIFunctions, dstatsTableHeader
+    initMode, tripType, vehStatus, simArea, windowType, vehicleIDletter, windowOptions, colors, initCoords, fixedStopLoopsDC, 
+    fixedStopLoopsLA, randTrip, depotSVG, dropoffSVG, pickupSVG, stopSVG, dashedLineSymbol, initEventEntry, APIColumns, APIURL,
+    APIFunctions, dstatsTableHeader, liveNotification, SimulationNotification, eventSeverity, warningColors, defaultZonePath
 };
 

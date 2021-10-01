@@ -1,9 +1,10 @@
 import {
   fullParse,
   findColIndex,
-  findCenter,
+  getMapCenter,
   trimStreetNames,
   findVehicleIndex,
+  getClockStartTime,
 } from './parseInput.js';
 import { initSimulation, stopSimulation, curMode } from './main.js';
 import { detailedStatsButton } from './detailedStatistics.js';
@@ -22,6 +23,7 @@ let latestFile;
 let firstSheet;
 let tripListObjTrimed;
 let fileColumns;
+let startTime;
 let newCenter;
 let reloadClock;
 
@@ -41,21 +43,22 @@ function fileInit(file = null) {
 
   reader.onload = (e) => {
     let contents = JSON.parse(processExcel(e.target.result));
-    fileColumns = findColIndex(contents[firstSheet]);
-    tripListObjTrimed = trimStreetNames(
-      contents[firstSheet].slice(1),
-      fileColumns
-    );
-    newCenter = findCenter(tripListObjTrimed, fileColumns);
+
+    fileColumns         = findColIndex(contents[firstSheet]);
+    tripListObjTrimed   = trimStreetNames(contents[firstSheet].slice(1), fileColumns);
+    startTime           = getClockStartTime(tripListObjTrimed, fileColumns);
+    newCenter           = getMapCenter(tripListObjTrimed, fileColumns);
+
     if (filePicker.value) {
       filePicker.value = '';
     }
+
     //!event
     fileEvent(inputFile.name);
 
     stopSimulation();
     fullParse(tripListObjTrimed, fileColumns);
-    initSimulation(initMode.file, newCenter);
+    initSimulation(initMode.file, startTime, newCenter);
 
     detailedStatsButton.classList.remove('no-file-selected');
   };

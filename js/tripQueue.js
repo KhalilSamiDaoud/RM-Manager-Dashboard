@@ -246,8 +246,6 @@ function popQueue() {
         queueWin.getElementById('popqueue').removeAttribute('style');
         queueWin.getElementById('popqueue').setAttribute('data-tooltip', 'Dock');
         queueWin.getElementById('filebutton').style.display = 'none';
-        queueWin.getElementById('routetrip').style.visibility = 'collapse';
-        queueWin.getElementById('swapmap').style.visibility = 'collapse';
         document.getElementById('queueplaceholder').style.display = 'block';
 
         checkMapResize();
@@ -276,8 +274,6 @@ function dockQueue() {
         document.getElementById('popqueue').setAttribute('style', 'margin-right:10px;');
         document.getElementById('popqueue').setAttribute('data-tooltip', 'Pop-out');
         document.getElementById('filebutton').style.display = 'block';
-        document.getElementById('routetrip').style.visibility = 'visible';
-        document.getElementById('swapmap').style.visibility = 'visible';
         document.getElementById('queueplaceholder').style.display = 'none';
 
         queueWin = removePopWindow(windowType.queue);

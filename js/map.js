@@ -18,7 +18,7 @@ function initMap(area) {
         scrollwheel: true,
         draggable: true,
         focusable: false,
-        zoom: 12,
+        zoom: 13,
         styles: [
             {
                 "featureType": "all",
