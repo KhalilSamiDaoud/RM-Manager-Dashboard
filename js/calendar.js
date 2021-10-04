@@ -11,7 +11,7 @@ let datePickerInstance = M.Datepicker.init(datePickerElem, {
     defaultDate: currDate,
     maxDate: currDate, 
     setDefaultDate: true,
-    format: 'm/dd/yyyy'
+    format: 'm/d/yyyy'
 });
 
 liveButton.addEventListener('click', liveInit);
