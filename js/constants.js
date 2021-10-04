@@ -10,7 +10,8 @@ const initEventEntry = Object.freeze({
     file: 'Initialized from file', 
     API: 'Initialized from API', 
     live: 'Initialized with live feed',
-    APIError: 'Failed to initialize from API' 
+    APIError: 'Failed to initialize from API',
+    APIempty: 'No trip data for this day'
 });
 
 //API Consts

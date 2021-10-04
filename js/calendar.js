@@ -59,6 +59,9 @@ function updateLiveButton(mode) {
 function handleDateSelect() {
     let pickedDate = datePickerInstance.toString();
 
+    console.log(pickedDate);
+    console.log(currDate.toLocaleDateString());
+
     if (pickedDate == currDate.toLocaleDateString() && curMode == initMode.live)
         return;
     else if (pickedDate == currDate.toLocaleDateString())

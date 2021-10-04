@@ -84,7 +84,7 @@ function updateSimSpeed() {
     });
     stopSimulation();
 
-    startClock();
+    startSIMClock();
     vehicles.forEach(vehicle => {
         vehicle.autoDispatch();
         vehicle.forceDispatch();
