@@ -1,5 +1,5 @@
 import { createPopWindow, removePopWindow } from './popWindowList.js';
-import { vehStatus, windowType, tripType } from './constants.js';
+import { VEHICLE_STATUS, WINDOW_TYPE, TRIP_TYPE } from './constants.js';
 import { vehicles } from './vehicleList.js';
 import { checkMapResize } from './map.js';
 import { materializeInit } from './main.js';
@@ -33,7 +33,7 @@ function createTripTabs() {
 
         let IDicon = queueWin.createElement('i');
 
-        if (vehicle.status == vehStatus.route) {
+        if (vehicle.status == VEHICLE_STATUS.route) {
             IDicon.innerHTML = 'directions_bus';
             IDicon.setAttribute('class', 'material-icons ' + vehicle.color.class);
         }
@@ -82,7 +82,7 @@ function updateTripTab(vehicle) {
     let tabIcon = tab.getElementsByTagName('i')[0];
 
     tab.setAttribute('class', 'tab tooltipped');
-    if (vehicle.status == vehStatus.route || vehicle.status == vehStatus.loop) {
+    if (vehicle.status == VEHICLE_STATUS.route || vehicle.status == VEHICLE_STATUS.loop) {
         tabIcon.innerHTML = 'directions_bus';
         tabIcon.setAttribute('class', 'material-icons ' + vehicle.color.class);
     }
@@ -142,11 +142,11 @@ function assignNewQueue(vehicle) {
         let tripIcon = queueWin.createElement('i');
         tripIcon.setAttribute('class', 'material-icons circle triplist-icon');
         switch (trip.type) {
-            case tripType.pickup:
+            case TRIP_TYPE.pickup:
                 tripIcon.classList.add('light-green-text');
                 tripIcon.classList.add('text-lighten-3');
                 break;
-            case tripType.dropoff:
+            case TRIP_TYPE.dropoff:
                 tripIcon.classList.add('light-blue-text');
                 tripIcon.classList.add('text-lighten-4');
                 break;
@@ -225,7 +225,7 @@ function progressBar(vehicle, offset) {
 
 function popQueue() {
     if (!isQueuePoped()) {
-        queueWin = createPopWindow(windowType.queue, 'ERSA - Trip Queue');
+        queueWin = createPopWindow(WINDOW_TYPE.queue, 'ERSA - Trip Queue');
 
         document.getElementById('popqueue').removeEventListener('click', popQueue);
         queueWin.body.appendChild(document.getElementById('queuepanel'));
@@ -276,7 +276,7 @@ function dockQueue() {
         document.getElementById('filebutton').style.display = 'block';
         document.getElementById('queueplaceholder').style.display = 'none';
 
-        queueWin = removePopWindow(windowType.queue);
+        queueWin = removePopWindow(WINDOW_TYPE.queue);
         materializeInit();
         checkMapResize();
     }

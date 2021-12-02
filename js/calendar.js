@@ -1,6 +1,6 @@
-import { initSimulation, stopSimulation, curMode } from './main.js';
-import { initMode } from './constants.js';
-import { APIinit } from './APIinput.js';
+import { initSimulation, stopSimulation, currMode } from './main.js';
+import { INIT_MODE } from './constants.js';
+import { initAPI } from './APIinput.js';
 
 const datePickerElem = document.getElementById('doipicker');
 const liveButton = document.getElementById('livebutton');
@@ -17,12 +17,12 @@ let datePickerInstance = M.Datepicker.init(datePickerElem, {
 liveButton.addEventListener('click', liveInit);
 doneButton[0].addEventListener('click', handleDateSelect);
 
-function initCalendar(mode = initMode.none) {
-    if (mode == initMode.live) {
+function initCalendar(mode = INIT_MODE.none) {
+    if (mode == INIT_MODE.live) {
         enableCalendar();
         return;
     }
-    else if (mode != initMode.API) {
+    else if (mode != INIT_MODE.API) {
         disableCalendar();
         return;
     }
@@ -42,7 +42,7 @@ function disableCalendar() {
 }
 
 function updateLiveButton(mode) {
-    if(mode == initMode.live) {
+    if(mode == INIT_MODE.live) {
         if(!liveButton.classList.contains('interactable')) {
             liveButton.classList.toggle('interactable');
             liveButton.style.opacity = 0.5;
@@ -59,20 +59,17 @@ function updateLiveButton(mode) {
 function handleDateSelect() {
     let pickedDate = datePickerInstance.toString();
 
-    console.log(pickedDate);
-    console.log(currDate.toLocaleDateString());
-
-    if (pickedDate == currDate.toLocaleDateString() && curMode == initMode.live)
+    if (pickedDate == currDate.toLocaleDateString() && currMode == INIT_MODE.live)
         return;
     else if (pickedDate == currDate.toLocaleDateString())
         liveInit();
     else
-        APIinit(pickedDate);
+        initAPI(pickedDate);
 }
 
 function liveInit() {
     stopSimulation();
-    initSimulation(initMode.live);
+    initSimulation(INIT_MODE.live);
 }
 
 export { initCalendar, updateLiveButton };

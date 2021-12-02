@@ -1,9 +1,10 @@
-import { vehicleIDletter, initCoords, colors, fixedStopLoopsDC} from './constants.js';
-import { mapCenter } from './map.js';
+import {TEST_ID_LETTERS, COLORS, VEHICLE_TYPE, TEST_STOPS} from './constants.js';
+import { LiveVehicle } from './liveVehicle.js';
 import { Vehicle } from './vehicle.js';
 import { Trip } from './trip.js';
 
 var vehicles = [];
+var liveVehicles = new Map();
 
 //for testing only 
 function populateRandVehicles(fleetSize) {
@@ -11,23 +12,16 @@ function populateRandVehicles(fleetSize) {
     clearVehicles();
 
     while (names.length < fleetSize) {
-        let newName = (Math.floor(Math.random() * 3) + 1) + vehicleIDletter[Math.floor(Math.random() * vehicleIDletter.length)];
+        let newName = (Math.floor(Math.random() * 3) + 1) +TEST_ID_LETTERS[Math.floor(Math.random() *TEST_ID_LETTERS.length)];
 
         if (!names.includes(newName))
             names.push(newName);
     }
 
     for (var i = 0; i < fleetSize; i++) {
-
         let capacity = Math.floor(Math.random() * (15 - 8)) + 8;
-        let veh;
 
-        if (JSON.stringify(mapCenter) == JSON.stringify(initCoords[0]))
-            veh = new Vehicle(names[i], capacity, colors[i], 5, convertToTrips(fixedStopLoopsDC[i]));
-        else
-            veh = new Vehicle(names[i], capacity, colors[i], 10, convertToTrips(fixedStopLoopLA[i]));
-
-        vehicles.push(veh);
+        vehicles.push(new Vehicle(names[i], capacity, COLORS[i], 5, convertToTrips(TEST_STOPS[i])));
     }
 }
 
@@ -44,15 +38,30 @@ function convertToTrips(jsonList) {
     return tripList
 }
 
-function createVehicle(VehID, VehCap, startTime) {
-    vehicles.push(new Vehicle(VehID, VehCap, colors[vehicles.length], startTime));
+function createVehicle(vehID, vehCap, startTime) {
+    vehicles.push(new Vehicle(vehID, vehCap, COLORS[vehicles.length], startTime));
+}
+
+//get vehicle type eventually
+function createLiveVehicle(vehID, vehCap, startTime, startPos=null, zone=null, heading=null, color=null) {
+    if (liveVehicles.has(vehID)) return;
+
+    liveVehicles.set(vehID, new LiveVehicle(vehID, VEHICLE_TYPE.sedan, vehCap, startTime, startPos, zone, heading, color));
 }
 
 function clearVehicles() {
     vehicles.forEach( vehicle => {
-        vehicle.clearIntervals();
+        vehicle?.clearIntervals();
     });
     vehicles = [];
+}
+
+function clearLiveVehicles() {
+    liveVehicles.forEach(vehicle => {
+        vehicle.destroy();
+    });
+
+    liveVehicles.clear();
 }
 
 function sortVehicleList() {
@@ -76,4 +85,4 @@ function isAllDepot() {
     return true;
 }
 
-export { populateRandVehicles, createVehicle, clearVehicles, sortVehicleList, isAllDepot, vehicles };
+export { populateRandVehicles, createVehicle, createLiveVehicle, clearVehicles, clearLiveVehicles, sortVehicleList, isAllDepot, vehicles, liveVehicles };

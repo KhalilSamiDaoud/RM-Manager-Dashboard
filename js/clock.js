@@ -1,6 +1,6 @@
-import { stopSimulation, curMode } from './main.js';
+import { stopSimulation, currMode } from './main.js';
 import { vehicles } from './vehicleList.js';
-import { initMode } from './constants.js';
+import { INIT_MODE } from './constants.js';
 
 document.getElementById('normalspeed').addEventListener('click', setSpeedNormal);
 document.getElementById('fastspeed').addEventListener('click', setSpeedFast);
@@ -16,7 +16,7 @@ let clockInterval;
 clockStartTime = clockCurrTime = 0;
 
 function initClock(startTime = 0) {
-    if (curMode == initMode.live) {
+    if (currMode == INIT_MODE.live) {
         clockCurrTime = clockStartTime = startTime;
 
         clock.innerHTML = timeToString(clockStartTime);

@@ -6,7 +6,7 @@ body {
 
 /* update this calc when the header / tab view is modified */
 .autoheight {
-  min-height: calc(100vh - 87px);
+  min-height: calc(100vh - 86px);
 }
 
 .box {
@@ -44,8 +44,8 @@ body {
 }
 
 .cardcontent {
-  margin-left: -23px;
-  margin-right: -23px;
+  margin-left: -23px !important;
+  margin-right: -23px !important;
   margin-bottom: -7px;
 }
 
@@ -177,7 +177,7 @@ body {
 }
 
 .showable {
-  display: none;
+  display: none !important;
 }
 
 .interactable {
@@ -524,7 +524,7 @@ div#modalfare {
 
 /* docked */
 .triplist-item {
-  height: clamp(75px, 9vh, 9vh) !important;
+  height: clamp(75px, 9vh, 9vh);
   margin: 3px !important;
 }
 
@@ -775,7 +775,7 @@ div#modalfare {
   border-style: solid; 
   margin:10px; 
   width:0px;
-   margin-left: 0px;
+  margin-left: 0px;
 }
 
 .zone-info {
@@ -794,6 +794,62 @@ div#modalfare {
 .live-vehicle-label {
   transform: translateY(125%);
   background-color: grey;
-  border-radius: 12px;
+  border-radius: 10px;
+  font-size: 10px !important;
   padding: 5px;
+}
+
+.live-triplist-item {
+    height: clamp(75px, 9vh, 9vh);
+    margin: 3px !important;
+}
+
+.live-triplist-item .trip-icon {
+  font-size: clamp(25px, 1.6vw, 1.6vw) !important;
+  line-height: clamp(35px, 2.3vw, 2.3vw) !important;
+  width: clamp(35px, 2.3vw, 2.3vw) !important;
+  height: clamp(35px, 2.3vw, 2.3vw) !important;
+}
+.live-triplist-item .trip-title-bar {
+  display: flex; 
+  flex-direction: row;
+}
+
+.live-triplist-item .trip-title-bar .trip-title {
+  font-size: clamp(18px, 1.1vw, 1.1vw) !important;
+  font-weight: 500;
+}
+
+.live-triplist-item .trip-title-bar .trip-eta {
+  font-size: 14px; 
+  line-height: 28px;
+  margin-left: auto;
+}
+
+.live-triplist-item .trip-adr {
+  font-size: clamp(14px, 0.8vw, 0.8vw);
+}
+
+.live-triplist-item .trip-adr i {
+  font-size: clamp(20px, 1vw, 1vw);
+  padding-left:5px; 
+  padding-right:5px;
+}
+
+.live-triplist-item .trip-prog {
+  display: flex; 
+  flex-direction: row;
+}
+
+.live-triplist-item .trip-prog .trip-prog-bar {
+  flex-grow: 1;
+}
+
+.live-triplist-item .trip-prog .trip-prog-status {
+  flex: 0 0 auto;
+  flex-wrap: nowrap; 
+  font-size: 14px !important;
+  line-height: 18px;
+  padding-left: 10px; 
+  float:right; 
 }

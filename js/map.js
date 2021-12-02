@@ -1,4 +1,4 @@
-import { dashedLineSymbol, stopSVG, depotSVG, dropoffSVG, pickupSVG } from './constants.js';
+import { DLINE_SYMBOL, stopSVG, depotSVG, dropoffSVG, pickupSVG } from './constants.js';
 import { isStatsPoped } from './statisticsList.js';
 import { isQueuePoped } from './tripQueue.js';
 import { vehicles } from './vehicleList.js';
@@ -18,7 +18,7 @@ function initMap(area) {
         scrollwheel: true,
         draggable: true,
         focusable: false,
-        zoom: 13,
+        zoom: 11,
         styles: [
             {
                 "featureType": "all",
@@ -49,6 +49,132 @@ function initMap(area) {
             },
             {
                 "featureType": "poi",
+                "elementType": "all",
+                "stylers": [
+                    {
+                        "visibility": "simplified"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi",
+                "elementType": "labels.text",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi",
+                "elementType": "labels.text.fill",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi",
+                "elementType": "labels.text.stroke",
+                "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.attraction",
+                "elementType": "all",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.business",
+                "elementType": "all",
+                "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.medical",
+                "elementType": "geometry",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.medical",
+                "elementType": "geometry.fill",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.medical",
+                "elementType": "geometry.stroke",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.medical",
+                "elementType": "labels",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.medical",
+                "elementType": "labels.text",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.medical",
+                "elementType": "labels.text.fill",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.medical",
+                "elementType": "labels.text.stroke",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.medical",
+                "elementType": "labels.icon",
+                "stylers": [
+                    {
+                        "visibility": "on"
+                    }
+                ]
+            },
+            {
+                "featureType": "poi.park",
                 "elementType": "all",
                 "stylers": [
                     {
@@ -92,6 +218,9 @@ function initMap(area) {
     const centerControlDiv = document.createElement("div");
     CenterControl(centerControlDiv, map);
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
+
+    const trafficLayer = new google.maps.TrafficLayer();
+    trafficLayer.setMap(map);
 }
 
 function createVehicleIcon(vehicle) {
@@ -103,7 +232,7 @@ function createVehicleIcon(vehicle) {
         strokeWeight: 8,
         strokeOpacity: 1,
         anchor: new google.maps.Point(0, 0)
-    }
+    };
 
     vehicle.symbol = busSymbol;
 }
@@ -247,7 +376,7 @@ function drawTripPath(vehicle) {
             strokeOpacity: 0,
             icons: [
                 {
-                    icon: dashedLineSymbol,
+                    icon: DLINE_SYMBOL,
                     offset: '0%',
                     repeat: '20px'
                 },

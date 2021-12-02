@@ -1,6 +1,6 @@
 import { calcTableBody, calcPercentDifference } from './simMath.js';
 import { files, processAndFormatExcel } from './fileInput.js';
-import { dstatsTableHeader } from './constants.js';
+import { STATS_TABLE_HEADER } from './constants.js';
 import { lineChart } from './lineChart.js';
 
 const detailedStatsButton = document.getElementById('detailstats');
@@ -106,7 +106,7 @@ function createVehicleTables() {
         table.classList.add('striped');
 
         const tableHead = document.createElement('thead');
-        tableHead.innerHTML = dstatsTableHeader;
+        tableHead.innerHTML = STATS_TABLE_HEADER;
 
         const tableBody = document.createElement('tbody');
         tableBody.setAttribute('id', formattedName + 'tablebody')

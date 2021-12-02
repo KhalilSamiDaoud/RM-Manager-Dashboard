@@ -1,4 +1,4 @@
-import { simArea, colors } from './constants.js';
+import { SIM_AREA, COLORS } from './constants.js';
 import { parseTime } from './parseInput.js';
 
 let sumTime, sumPass, sumTrips, sumRevn;
@@ -49,13 +49,13 @@ async function calcPassengersServed(trip) {
 async function calcRevenueGenerated(trip, formatted = false) {
     let index;
     switch (document.title) {
-        case simArea.DC:
+        case SIM_AREA.DC:
             index = 0;
             break;
-        case simArea.LA:
+        case SIM_AREA.LA:
             index = 1;
             break;
-        case simArea.Cust:
+        case SIM_AREA.Cust:
             index = 2;
             break;
         default:
@@ -89,13 +89,13 @@ async function calcVehicleMileage(vehicle) {
 async function calcVehicleRevenue(vehicle) {
     let index;
     switch (document.title) {
-        case simArea.DC:
+        case SIM_AREA.DC:
             index = 0;
             break;
-        case simArea.LA:
+        case SIM_AREA.LA:
             index = 1;
             break;
-        case simArea.Cust:
+        case SIM_AREA.Cust:
             index = 2;
             break;
         default:
@@ -134,7 +134,7 @@ function calcTableBody(file, tableID) {
 
         //col 0 --> icon
         const vehicleAncr = document.createElement('a');
-        vehicleAncr.setAttribute('class', colors[index].class + ' center')
+        vehicleAncr.setAttribute('class', COLORS[index].class + ' center')
         vehicleAncr.innerHTML = vehicle;
         const vehicleIcon = document.createElement('i');
         vehicleIcon.setAttribute('class', 'material-icons left');
@@ -180,13 +180,13 @@ function calcTableBody(file, tableID) {
                 let fareType;
 
                 switch (document.title) {
-                    case simArea.DC:
+                    case SIM_AREA.DC:
                         fareType = 0;
                         break;
-                    case simArea.LA:
+                    case SIM_AREA.LA:
                         fareType = 1;
                         break;
-                    case simArea.Cust:
+                    case SIM_AREA.Cust:
                         fareType = 2;
                         break;
                     default:

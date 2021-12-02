@@ -1,4 +1,4 @@
-import { colors } from './constants.js';
+import { COLORS } from './constants.js';
 import { parseTime } from './parseInput.js';
 
 class lineChart {
@@ -186,11 +186,11 @@ class lineChart {
         }
 
         this.highestPeak.vehicle = Object.keys(this.file.vehindexs)[maxIndex];
-        this.highestPeak.color = colors[maxIndex].class;
+        this.highestPeak.color = COLORS[maxIndex].class;
         this.highestPeak.value = max;
 
         this.lowestPeak.vehicle = Object.keys(this.file.vehindexs)[minIndex];
-        this.lowestPeak.color = colors[minIndex].class;
+        this.lowestPeak.color = COLORS[minIndex].class;
         this.lowestPeak.value = min;
 
         this.averagePeak = Math.ceil(peaks.reduce((a, b) => a + b, 0) / peaks.length);

@@ -3,7 +3,25 @@
 #
 
 DF_COLS = {
-    # 'triptype': 0, ?? where to get this?
+    'vehicle': 9,
+    # 'nodetype': 3,
+    'schtime': 2,
+    'PUlat': 32,
+    'PUlong': 30,
+    'DOlat':33,
+    'DOlong':32,
+    'passcount': 105,
+    'name': 17,
+    'PUaddr': 1,
+    'DOaddr': 4,
+    # 'reqtime': 19,
+    'trvtime': 23,
+    'trvdist': 22,
+    'confnum':73,
+    'phonenum': 70
+}
+
+DF_FUTURE_COLS = {
     'vehicle': 0,
     'nodetype': 3,
     'schtime': 4,
@@ -13,16 +31,70 @@ DF_COLS = {
     'name': 16,
     'addr': 17,
     'reqtime': 19,
-    'trvtime': 20,
-    'trvdist': 21
+    'trvtime': 21,
+    'trvdist': 22,
+    'idletime':20,
+    'confnum':15
 }
 
 
 
-DB_CONNECT_CRED = 'Driver={Sql Server};Server=192.168.13.91;Database=DispatchManagerDB;UID=sa;PWD=Regency1;'
+LOC_COLS = {
+    'vehicle': 99,
+    'latitude': 105,
+    'longitude': 106,
+    'state': 101,
+    'direction': 109,
+    'stop-lat': 119,
+    'stop-long': 118,
+    'avlzone': 104,
+    'veh-color': 6,
+    'affiliateID': 34
+
+}
+
+ZONE_COLS = { 
+    'name':1,
+    'lat':46,
+    'long':47,
+    'ID':0,
+    'color':20
+
+}
+
+ALERT_COLS = {
+    'message':1,
+    'details':9,
+    'datetime': 10,
+    'affiliateID':15
+}
+
+
+
+DB_CONNECT_CRED = 'Driver={Sql Server};Server=192.168.13.81;Database=Eastcoast;UID=sa;PWD=Regency1;'
+
+# DB_LOCATIONS = 'MV_GetVehLocationFromAPI'
+
+DB_ZONES = 'SELECT * FROM Zones Z WITH (NOLOCK) LEFT OUTER JOIN ZonesVertices V WITH (NOLOCK) on Z.iID = V.zoneID '
+
+# DB_SMART_DEVICE = 'SELECT * FROM SMARTDEVICE'
+DB_SMART_DEVICE = 'SELECT * FROM def_Vehicles V WITH (NOLOCK) LEFT OUTER JOIN SMARTDEVICE S WITH (NOLOCK) on V.vVehicleNo = S.IVEHICLEID '
+
+DB_STATUS = 'usp_SD_GetTripLoadStatus'
+
+DB_ALERTS = "SELECT * FROM def_alerts A WITH (NOLOCK) WHERE A.dtCreationDate > '{{ date }}'"
+
+
+
+ZONE_LOCATIONS = """
+            --SET NOCOUNT ON;
+            usp_Zone_GetVertices
+            WITH (NOLOCK)
+"""
+DB_QUERY_TRIPS = "SELECT * FROM SERVICEREQUESTSONDEMAND WITH (NOLOCK)"
 
 # Without SET NOCOUNT ON in the query the whole query will break!!!!
-DB_QUERY_TRIPS =  """
+FUTURE_DB_QUERY_TRIPS =  """
 			Declare @dtSelectForFromDate Datetime
 			Set @dtSelectForFromDate = '{{ date }}'
          SET NOCOUNT ON
@@ -103,3 +175,4 @@ DB_QUERY_TRIPS =  """
             WHERE ISNULL(RI.vVirtualRoute,'') <> ''
 			) A order by RouteNO, StopNumber
             """
+

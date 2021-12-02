@@ -6,11 +6,11 @@ import {
   findVehicleIndex,
   getClockStartTime,
 } from './parseInput.js';
-import { initSimulation, stopSimulation, curMode } from './main.js';
+import { initSimulation, stopSimulation, currMode } from './main.js';
 import { detailedStatsButton } from './detailedStatistics.js';
 import { getUserFare } from './statisticsList.js';
 import { isAllDepot } from './vehicleList.js';
-import { initMode } from './constants.js';
+import { INIT_MODE } from './constants.js';
 import { fileEvent } from './log.js';
 
 const fileButton = document.getElementById('filebutton');
@@ -58,7 +58,7 @@ function fileInit(file = null) {
 
     stopSimulation();
     fullParse(tripListObjTrimed, fileColumns);
-    initSimulation(initMode.file, startTime, newCenter);
+    initSimulation(INIT_MODE.file, startTime, newCenter);
 
     detailedStatsButton.classList.remove('no-file-selected');
   };
@@ -108,7 +108,7 @@ function clearFiles() {
 
 function startReloadClock() {
   reloadClock = window.setInterval(() => {
-    if (curMode != initMode.file) {
+    if (currMode != INIT_MODE.file) {
       reloadClock = window.clearInterval(reloadClock);
       return;
     }

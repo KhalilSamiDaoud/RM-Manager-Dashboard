@@ -1,7 +1,10 @@
-import { vehicles, createVehicle, clearVehicles, sortVehicleList } from './vehicleList.js';
+import { vehicles, liveVehicles, createVehicle, createLiveVehicle, clearVehicles, sortVehicleList } from './vehicleList.js';
 import { calcWaitTime } from './simMath.js';
-import { tripType } from './constants.js';
+import { createZone } from './zoneList.js';
+import { TRIP_TYPE } from './constants.js';
 import { Trip } from './trip.js';
+
+const timer = ms => new Promise(res => setTimeout(res, ms));
 
 function findColIndex(tripListObj) {
     return {
@@ -54,15 +57,13 @@ function fullParse(records, fileColumns) {
 // mode 1 = minutes representation
 // mode 2 = both [minutes, [hr,min,sec]]
 function parseTime(timeString, mode = 1) {
-    let UDTfix = (timeString.length > 11) ? 300 : 0;
+    let UDTfix = (timeString.length > 11) ? true : false;
     let hms, minutes;
 
-    if (UDTfix) {
-        hms = timeString.substring(timeString.indexOf('T') + 1, timeString.indexOf('T') + 9).split(':');
-        hms[0] = (+hms[0] - 5 < 0) ? (24 + (+hms[0] - 5)) : +hms[0] - 5;
-    }
-    else
-        hms = timeString.substring(0, 11).split(/:| /);
+    if (UDTfix)
+        timeString = new Date(timeString).toLocaleTimeString();
+
+    hms = timeString.substring(0, 11).split(/:| /);
 
     switch (mode) {
         case 0:
@@ -70,12 +71,22 @@ function parseTime(timeString, mode = 1) {
         case 1:
         case 2:
             minutes = (+hms[0]) * 60 + (+hms[1]) + (+hms[2] / 60);
-            minutes = (minutes < 0 || hms[hms.length - 1] == 'PM') ? 1440 + minutes : minutes;
+
+            if (hms[hms.length - 1] == 'PM')
+                minutes = (+hms[0] != 12) ? minutes + 720 : minutes;
+            else if (hms[hms.length - 1] == 'AM')
+                minutes = (+hms[0] != 12) ? minutes : minutes - 720;
 
             if (mode == 1)
                 return minutes;
-            else
+            else {
+                if ((hms[hms.length - 1] == 'AM' && +hms[0] == 12))
+                    return [minutes, [(+hms[0] - 12), +hms[1], +hms[2]]];
+                if ((hms[hms.length - 1] == 'PM' && +hms[0] != 12))
+                    return [minutes, [(+hms[0] + 12), +hms[1], +hms[2]]];
+
                 return [minutes, [+hms[0], +hms[1], +hms[2]]];
+            }
         default:
             throw new Error('invalid mode (' + mode + ')');
     }
@@ -84,14 +95,14 @@ function parseTime(timeString, mode = 1) {
 function getTripType(record, fileColumns) {
     switch (record[fileColumns.typeIndex]) {
         case 'PU':
-            return tripType.pickup;
+            return TRIP_TYPE.pickup;
         case 'DO':
-            return tripType.dropoff;
+            return TRIP_TYPE.dropoff;
         case 'StartDepot':
         case 'EndDepot':
-            return tripType.depot;
+            return TRIP_TYPE.depot;
         default:
-            return tripType.unknown;
+            return TRIP_TYPE.unknown;
     }
 }
 
@@ -139,6 +150,48 @@ function getVehiclesFromJSON(records, fileColumns) {
     sortVehicleList();
 }
 
+function getLiveVehiclesFromJSON(records, fileColumns) {
+    records.forEach(record => {
+        createLiveVehicle(record[fileColumns.vehID], 10, 0, { lat: record[fileColumns.vehLat], lng: record[fileColumns.vehLng] }, 
+            record[fileColumns.vehZone], record[fileColumns.vehHeading], record[fileColumns.vehColor]);
+    });
+}
+
+function getZonesFromJSON(records, fileColumns) {
+    records.forEach(record => {
+        createZone(record[fileColumns.zoneName], record[fileColumns.zoneColor]);
+    });
+}
+
+function getLiveTripsFromJSON(records, fileColumns) {
+    for (let i = 0; i < records.length; i++) {
+        if (records[i][fileColumns.vehID] == -1 || records[i][fileColumns.vehID] == 0) 
+            continue;
+
+        if (liveVehicles.has(records[i][fileColumns.vehID])) {
+            liveVehicles.get(records[i][fileColumns.vehID]).addTrip(new Trip({liveRecord: records[i]}));
+        }
+    }
+}
+
+//this function limits the amount of vehicle updates /w throttle timer
+async function updateLiveVehiclesFromJSON(records, fileColumns) {
+    // let throttleCap = (records.length > 10) ? Math.ceil(records.length / 4) : records.length;
+    // let throttleCount = 0;
+
+    for (let i = 0; i < records.length; i++) {
+    //     ++throttleCount;
+    //     if(throttleCount == throttleCap) {
+    //         throttleCount = 0;
+    //         await timer(3000);
+    //     }
+        if (liveVehicles.has(records[i][fileColumns.vehID]))
+            liveVehicles.get(records[i][fileColumns.vehID]).updateMarker({ lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
+        else
+            createLiveVehicle(records[i][fileColumns.vehID], 10, 0, { lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
+    }
+}
+
 function getFixedStopsFromJSON(records, fileColumns) {
     vehicles.forEach(vehicle => {
         let uniqueStops = [];
@@ -150,7 +203,7 @@ function getFixedStopsFromJSON(records, fileColumns) {
                         uniqueStops.push(record[fileColumns.nameIndex]);
 
                         //arbitrary speed / idle / wait as the SIM should not do any geo-location loop-ups to determine fixed-stop loops (cannot be determined from ERSA routing). 
-                        vehicle.stops.push(new Trip(record[fileColumns.nameIndex], tripType.fixedstop, { lat: record[fileColumns.latIndex], lng: record[fileColumns.longIndex] },
+                        vehicle.stops.push(new Trip(record[fileColumns.nameIndex], TRIP_TYPE.fixedstop, { lat: record[fileColumns.latIndex], lng: record[fileColumns.longIndex] },
                             { lat: 0.0, lng: 0.0 }, record[fileColumns.adrIndex], 'N/A', 5.4, 12, 0, record[fileColumns.passengerIndex], record[fileColumns.estDistanceIndex]));
                     }
         });
@@ -195,7 +248,7 @@ function getQueueFromJSON(records, fileColumns) {
                     if (records[next][fileColumns.nameIndex] != lastStop) {
                         lastStop = records[next][fileColumns.nameIndex];
 
-                        vehicle.queue.push(new Trip(records[next][fileColumns.nameIndex], tripType.fixedstop, { lat: records[i][fileColumns.latIndex], lng: records[i][fileColumns.longIndex] },
+                        vehicle.queue.push(new Trip(records[next][fileColumns.nameIndex], TRIP_TYPE.fixedstop, { lat: records[i][fileColumns.latIndex], lng: records[i][fileColumns.longIndex] },
                             { lat: records[next][fileColumns.latIndex], lng: records[next][fileColumns.longIndex] }, records[i][fileColumns.adrIndex], records[next][fileColumns.adrIndex],
                             records[next][fileColumns.estTimeIndex], 0, 0, records[next][fileColumns.passengerIndex], records[next][fileColumns.estDistanceIndex]));
                     }
@@ -205,7 +258,7 @@ function getQueueFromJSON(records, fileColumns) {
                     }
                 }
                 else {
-                    let tName = (getTripType(records[next], fileColumns) == tripType.depot) ? 'End Depot' : records[next][fileColumns.nameIndex];
+                    let tName = (getTripType(records[next], fileColumns) == TRIP_TYPE.depot) ? 'End Depot' : records[next][fileColumns.nameIndex];
 
                     vehicle.queue.push(new Trip(tName, getTripType(records[next], fileColumns), { lat: records[i][fileColumns.latIndex], lng: records[i][fileColumns.longIndex] },
                         { lat: records[next][fileColumns.latIndex], lng: records[next][fileColumns.longIndex] }, records[i][fileColumns.adrIndex], records[next][fileColumns.adrIndex],
@@ -218,4 +271,5 @@ function getQueueFromJSON(records, fileColumns) {
     });
 }
 
-export { findColIndex, getMapCenter, fullParse, parseTime, trimStreetNames, findVehicleIndex, getClockStartTime }
+export { findColIndex, getMapCenter, fullParse, parseTime, trimStreetNames, findVehicleIndex, getClockStartTime, 
+    getLiveVehiclesFromJSON, updateLiveVehiclesFromJSON, getZonesFromJSON, getLiveTripsFromJSON }

@@ -1,4 +1,4 @@
-import { windowOptions, windowType } from './constants.js';
+import { WINDOW_PARAMS, WINDOW_TYPE } from './constants.js';
 import { dockStats } from './statisticsList.js'
 import { dockQueue } from './tripQueue.js';;
 import { dockLog } from './log.js';
@@ -6,11 +6,11 @@ import { dockLog } from './log.js';
 let chartScript;
 
 class PopWindow {
-    constructor(type = windowType.unknown, title = 'unknown') {
+    constructor(type = WINDOW_TYPE.unknown, title = 'unknown') {
         this.type = type;
-        this.win = window.open('', type, windowOptions + "dependent=yes, top=" + (screen.height / 2 - 400) + ",left=" + (screen.width / 2 - screen.width / 3));
+        this.win = window.open('', type, WINDOW_PARAMS + "dependent=yes, top=" + (screen.height / 2 - 400) + ",left=" + (screen.width / 2 - screen.width / 3));
 
-        chartScript = (this.type == windowType.statistics) ? ' this.opener.drawMaterial(); window.onresize = this.opener.drawMaterial;' : '';
+        chartScript = (this.type == WINDOW_TYPE.statistics) ? ' this.opener.drawMaterial(); window.onresize = this.opener.drawMaterial;' : '';
 
         this.win.document.writeln(
             '<html><head><title>' + title + '</title><link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">' +
@@ -21,13 +21,13 @@ class PopWindow {
         );
 
         switch (this.type) {
-            case (windowType.statistics):
+            case (WINDOW_TYPE.statistics):
                 this.win.addEventListener('beforeunload', dockStats);
                 break;
-            case (windowType.log):
+            case (WINDOW_TYPE.log):
                 this.win.addEventListener('beforeunload', dockLog);
                 break;
-            case (windowType.queue):
+            case (WINDOW_TYPE.queue):
                 this.win.addEventListener('beforeunload', dockQueue);
                 break;
             default:

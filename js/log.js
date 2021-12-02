@@ -1,4 +1,4 @@
-import { tripType, windowType, eventSeverity, warningColors } from './constants.js';
+import { TRIP_TYPE, WINDOW_TYPE, EVENT_SEVERITY, WARNING_COLORS } from './constants.js';
 import { createPopWindow, removePopWindow } from './popWindowList.js';
 import { timeToString } from './clock.js';
 import { checkMapResize } from './map.js';
@@ -19,7 +19,7 @@ function addEvent(innerElems = [], colorClass='white') {
         });
 
     let entryTime = logWin.createElement('a');
-    entryTime.setAttribute('class', 'right cyan-text text-darken-2');
+    entryTime.setAttribute('class', 'right cyan-text text-darken-1');
     entryTime.innerHTML = timeToString();
 
     entry.appendChild(entryTime);
@@ -79,16 +79,16 @@ function vehicleEvent(vehicle, pos) {
     let innerText;
 
     switch (tripRef.type) {
-        case (tripType.pickup):
+        case (TRIP_TYPE.pickup):
             innerText = 'pick-up @ ' + tripRef.DOadr;
             break;
-        case (tripType.dropoff):
+        case (TRIP_TYPE.dropoff):
             innerText = 'drop-off @ ' + tripRef.DOadr;
             break;
-        case (tripType.fixedstop):
+        case (TRIP_TYPE.fixedstop):
             innerText = 'Arrived at station \'' + tripRef.name + '\'';
             break;
-        case (tripType.depot):
+        case (TRIP_TYPE.depot):
             innerText = vehicle.name + ' is Depoting';
             break;
         default:
@@ -98,13 +98,13 @@ function vehicleEvent(vehicle, pos) {
 
     let entryIcon = logWin.createElement('i');
     entryIcon.setAttribute('class', 'material-icons left ' + vehicle.color.class);
-    entryIcon.innerHTML = (tripRef.type == tripType.depot) ? 'departure_board' : 'directions_bus';
+    entryIcon.innerHTML = (tripRef.type == TRIP_TYPE.depot) ? 'departure_board' : 'directions_bus';
     stpElems.push(entryIcon);
 
-    if (tripRef.type == tripType.pickup || tripRef.type == tripType.dropoff) {
+    if (tripRef.type == TRIP_TYPE.pickup || tripRef.type == TRIP_TYPE.dropoff) {
         let psngrCount = logWin.createElement('span');
         psngrCount.setAttribute('class', 'badge left grey lighten-2 logpassengers');
-        psngrCount.innerHTML = ((tripRef.type == tripType.pickup) ? '+' : '-') + tripRef.passengers;
+        psngrCount.innerHTML = ((tripRef.type == TRIP_TYPE.pickup) ? '+' : '-') + tripRef.passengers;
         stpElems.push(psngrCount);
     }
 
@@ -116,7 +116,7 @@ function vehicleEvent(vehicle, pos) {
 }
 
 //stub - needs proper implementation 
-function lateEvent(severity = eventSeverity.none, mins=5, req='12:00') {
+function lateEvent(severity = EVENT_SEVERITY.none, mins=5, req='12:00') {
     let colorClass = getColorClass(severity);
     let stpElems = [];
 
@@ -145,7 +145,7 @@ function breakDownEvent() {
     entryText.innerHTML = 'XXXX is reporting a breakdown @ 17146 Downing Street';
     stpElems.push(entryText);
 
-    addEvent(stpElems, warningColors[2].class);
+    addEvent(stpElems, WARNING_COLORS[2].class);
 }
 
 //stub - needs proper implementation 
@@ -164,10 +164,10 @@ function driverEvent(type=1) {
     if (type == 1)
         entryText.innerHTML = 'XXXX has rejected a manifest offer';
     else 
-        entryText.innerHTML = 'XXXX has not accepted or been assigned a manifest';
+        entryText.innerHTML = 'XXXX has not accepted or been assigned a manifest offer';
     stpElems.push(entryText);
 
-    addEvent(stpElems, warningColors[0].class);
+    addEvent(stpElems, WARNING_COLORS[0].class);
 }
 
 //stub - needs proper implementation
@@ -183,25 +183,25 @@ function noShowEvent(req = '12:00') {
     entryText.innerHTML = 'XXXX is reporting a no-show <b>[Khalil D. Requested ' + req +']</b>';
     stpElems.push(entryText);
 
-    addEvent(stpElems, warningColors[0].class);
+    addEvent(stpElems, WARNING_COLORS[0].class);
 }
 
 function getColorClass(severity) {
     switch (severity) {
-        case eventSeverity.low:
-            return warningColors[0].class;
-        case eventSeverity.med:
-            return warningColors[1].class;
-        case eventSeverity.high:
-            return warningColors[2].class;
+        case EVENT_SEVERITY.low:
+            return WARNING_COLORS[0].class;
+        case EVENT_SEVERITY.med:
+            return WARNING_COLORS[1].class;
+        case EVENT_SEVERITY.high:
+            return WARNING_COLORS[2].class;
         default:
-            return warningColors[3].class;
+            return WARNING_COLORS[3].class;
     }
 }
 
 function popLog() {
     if (!isLogPoped()) {
-        logWin = createPopWindow(windowType.log, 'ERSA - Log');
+        logWin = createPopWindow(WINDOW_TYPE.log, 'ERSA - Log');
 
         document.getElementById('poplog').removeEventListener('click', popLog);
         logWin.body.appendChild(document.getElementById('logpanel'));
@@ -246,7 +246,7 @@ function dockLog() {
             entry.classList.remove('slide');
         });
 
-        logWin = removePopWindow(windowType.log);
+        logWin = removePopWindow(WINDOW_TYPE.log);
         logBox.scrollTop = logBox.scrollHeight;
         M.Tooltip.init(document.getElementById('poplog'));
         M.Tooltip.init(document.getElementById('clearlog'));

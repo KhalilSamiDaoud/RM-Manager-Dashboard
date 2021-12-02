@@ -2,13 +2,13 @@ import { calcVehiclePassengersServed, calcVehicleIdle, calcVehicleMileage, calcV
 import { assignNewQueue, updateTripTab, progressBar, setCurrTripIdle, clearCurrTrip } from './tripQueue.js';
 import { updateGeneralStats, updateVehicleStats } from './statisticsList.js';
 import { drawTripPath, drawNextNIcons, drawNextIcon, map } from './map.js';
-import { vehStatus, tripType, colors } from './constants.js';
+import { VEHICLE_STATUS, TRIP_TYPE, COLORS } from './constants.js';
 import { simSpeedFactor, clockCurrTime } from './clock.js';
 import { drawMaterial } from './barChart.js';
 import { vehicleEvent } from './log.js';
 
 class Vehicle {
-    constructor(name = 'N/A', maxCapacity = 0, color = colors[colors.length - 1], startTime = 0, stops = [], queue = []) {
+    constructor(name = 'N/A', maxCapacity = 0, color = COLORS[COLORS.length - 1], startTime = 0, stops = [], queue = []) {
         this.name = name;
         this.maxCapacity = maxCapacity;
         this.startTime = startTime;
@@ -16,7 +16,7 @@ class Vehicle {
         this.stops = stops;
         this.queue = queue;
 
-        this.status = vehStatus.starting;
+        this.status = VEHICLE_STATUS.starting;
         this.idling = false;
         this.pos = 0;
         this.mapOffset = 0;
@@ -49,11 +49,11 @@ class Vehicle {
 
     updateStatus() {
         if (this.stops.length == 0 && this.queue.length == 0)
-            this.status = vehStatus.depot;
+            this.status = VEHICLE_STATUS.depot;
         else if (this.queue.length <= this.stops.length)
-            this.status = vehStatus.loop;
+            this.status = VEHICLE_STATUS.loop;
         else
-            this.status = vehStatus.route;
+            this.status = VEHICLE_STATUS.route;
 
         updateTripTab(this);
     }
@@ -71,14 +71,14 @@ class Vehicle {
 
     updatePassengers(trip) {
         switch (trip.type) {
-            case tripType.fixedstop:
+            case TRIP_TYPE.fixedstop:
                 this.addRandPassengers();
                 this.removeRandPassengers();
                 break;
-            case tripType.pickup:
+            case TRIP_TYPE.pickup:
                 this.MTpassengers += trip.passengers;
                 break;
-            case tripType.dropoff:
+            case TRIP_TYPE.dropoff:
                 this.MTpassengers -= trip.passengers;
                 break;
             default:
@@ -124,19 +124,19 @@ class Vehicle {
     }
 
     tripIsDepot(index) {
-        return this.queue[index].type == tripType.depot;
+        return this.queue[index].type == TRIP_TYPE.depot;
     }
 
     tripIsFixedStop(index) {
-        return this.queue[index].type == tripType.fixedstop;
+        return this.queue[index].type == TRIP_TYPE.fixedstop;
     }
 
     tripIsPickup(index) {
-        return this.queue[index].type == tripType.pickup;
+        return this.queue[index].type == TRIP_TYPE.pickup;
     }
 
     tripIsDropoff(index) {
-        return this.queue[index].type == tripType.dropoff;
+        return this.queue[index].type == TRIP_TYPE.dropoff;
     }
 
     animate() {
@@ -222,7 +222,7 @@ class Vehicle {
 
     //task: move to shared mem buffer /w web worker doing all the costly math operations
     async updateStats(trip) {
-        if (trip.type == tripType.pickup) {
+        if (trip.type == TRIP_TYPE.pickup) {
             calcVehiclePassengersServed(this);
             calcVehicleRevenue(this);
         }
@@ -235,7 +235,7 @@ class Vehicle {
     autoDispatch() {
         if (typeof this.dispatcher === 'undefined') {
             this.dispatcher = window.setInterval(() => {
-                if (this.queue.length != 0 && this.startTime <= (clockCurrTime + 1) && this.status == vehStatus.starting) {
+                if (this.queue.length != 0 && this.startTime <= (clockCurrTime + 1) && this.status == VEHICLE_STATUS.starting) {
                     this.dispatcher = window.clearInterval(this.dispatcher);
                     this.updateStatus();
                     this.animate();
@@ -245,7 +245,7 @@ class Vehicle {
     }
 
     forceDispatch() {
-        if (this.status == vehStatus.route || this.status == vehStatus.loop) {
+        if (this.status == VEHICLE_STATUS.route || this.status == VEHICLE_STATUS.loop) {
             this.animate();
         }
     }
@@ -260,7 +260,7 @@ class Vehicle {
     }
 
     hasFinished() {
-        return this.status == vehStatus.depot || this.status == vehStatus.loop;
+        return this.status == VEHICLE_STATUS.depot || this.status == VEHICLE_STATUS.loop;
     }
 }
 

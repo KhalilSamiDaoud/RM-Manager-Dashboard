@@ -1,68 +1,74 @@
 import { createGeneralStats, createVehicleStats, clearGeneralStats, clearVehicleStats } from './statisticsList.js';
-import { initCoords, initMode, initEventEntry, liveNotification, SimulationNotification, colors } from './constants.js';
+import { INIT_COORDS, INIT_MODE, INIT_EVENT_TYPE, LIVE_NOTIF, SIM_NOTIF} from './constants.js';
 import { createTripTabs, createTripLists, clearTripTabs, clearTripLists } from './tripQueue.js';
 import { initClock, startSYSClock, startSIMClock, stopClock } from './clock.js';
 import { initMap, createVehicleIcon, drawStaticIcons } from './map.js';
-import { populateRandVehicles, vehicles } from './vehicleList.js';
-import { initEvent, lateEvent, breakDownEvent, noShowEvent, driverEvent } from './log.js';
+import { liveVehicles, populateRandVehicles, vehicles } from './vehicleList.js';
 import { initCalendar, updateLiveButton } from './calendar.js';
 import { drawMaterial } from './barChart.js';
-import { Zone } from './zone.js';
-import { LiveVehicle } from './liveVehicle.js';
+import { initLive } from './APIinput.js';
+import { initEvent } from './log.js';
 
-let curMode = initMode.none;
+import './zoneList.js';
+import './liveQueue.js';
+import { initLiveQueue } from './liveQueue.js';
+
+let currMode = INIT_MODE.none;
 let prevInitalized = false;
 
-function initSimulation(mode = initMode.none, startTime = 0, coords = initCoords[0]) {
-    curMode = mode;
+function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COORDS[0]) {
+    currMode = mode;
     updateLiveButton(mode);
     initCalendar(mode);
     initClock(startTime);
     initMap(coords);
 
-    if (prevInitalized) {
-        clearTripTabs();
-        clearTripLists();
-        clearGeneralStats();
-        clearVehicleStats();
-        stopClock();
-    }
+    // if (prevInitalized) {
+    //     clearTripTabs();
+    //     clearTripLists();
+    //     clearGeneralStats();
+    //     clearVehicleStats();
+    //     stopClock();
+    // }
 
     // !event
     switch (mode) {
-        case initMode.test:
+        case INIT_MODE.test:
             populateRandVehicles(3);
-            initEvent(initEventEntry.test);
+            initEvent(INIT_EVENT_TYPE.test);
             break;
-        case initMode.file:
-            initEvent(initEventEntry.file);
+        case INIT_MODE.file:
+            initEvent(INIT_EVENT_TYPE.file);
             break;
-        case initMode.API:
-            initEvent(initEventEntry.API);
+        case INIT_MODE.API:
+            initEvent(INIT_EVENT_TYPE.API);
             break;
-        case initMode.live:
-            populateRandVehicles(3);
-            //remove me also
-            let x = new Zone('Test Zone 1', colors[0]);
-            x.addZone();
-            new LiveVehicle('#001-01', 0, colors[0]);
-            new LiveVehicle('#001-02', 0, colors[0]);
-            initEvent(initEventEntry.live);
+        case INIT_MODE.live:
+            initEvent(INIT_EVENT_TYPE.live);
             break;
         default:
             return;
     }
 
-    createTripTabs();
-    createTripLists();
-    createGeneralStats();
-    createVehicleStats();
+    // createTripTabs();
+    //createTripLists();
+    // createGeneralStats();
+    // createVehicleStats();
 
-    vehicles.forEach(vehicle => {
-        vehicle.updateQueue();
-        createVehicleIcon(vehicle);
-        vehicle.autoDispatch();
-    });
+    if(mode != INIT_MODE.live) {
+        vehicles.forEach(vehicle => {
+            vehicle.updateQueue();
+            createVehicleIcon(vehicle);
+            vehicle.autoDispatch();
+        });
+    }
+    else {
+        liveVehicles.forEach(vehicle => {
+            vehicle.createLiveVehicle();
+        });
+    }
+
+    initLiveQueue();
 
     drawStaticIcons();
 
@@ -76,35 +82,25 @@ function initSimulation(mode = initMode.none, startTime = 0, coords = initCoords
     if (!prevInitalized)
         prevInitalized = true;
 
-    if (mode == initMode.live) {
-        //temp REMOVE ME
-        lateEvent(1, 5, '11:55');
-        lateEvent(2, 12, '11:48');
-        lateEvent(3, 20, '11:40');
-        breakDownEvent();
-        noShowEvent('11:55');
-        driverEvent(1);
-        driverEvent(2);
-
-        setHeaderTitle('Dashboard', liveNotification);
+    if (mode == INIT_MODE.live) {
+        setHeaderTitle('Dashboard', LIVE_NOTIF);
         startSYSClock();
     }
     else {
-        setHeaderTitle('Dashboard', SimulationNotification);
+        setHeaderTitle('Dashboard', SIM_NOTIF);
         startSIMClock()
     }
 }
 
 async function startSequence() {
-    initSimulation(initMode.live);
-    // try {
-    //     await APIinit();
-    // }
-    // catch (err) {
-    //     console.log(err);
-    //     initEvent(initEventEntry.APIError);
-    //     initSimulation(initMode.test);
-    // }
+    try {
+        await initLive();
+    }
+    catch (error) {
+        console.error('DASH-API Initialization error: ', error);
+        initEvent(INIT_EVENT_TYPE.APIError);
+        initSimulation(INIT_MODE.test);
+    }
 }
 
 function stopSimulation() {
@@ -132,9 +128,19 @@ function materializeReload() {
     $('#tabs').tabs().tabs('select', vehicles[0].name);
 }
 
-function setHeaderTitle(area, specialMsg = '') {
-    document.title = area;
-    document.getElementById('headertitle').firstChild.innerHTML = area + specialMsg;
+function setHeaderTitle(title, specialMsg = '') {
+    document.title = title;
+    document.getElementById('headertitle').firstChild.innerHTML = title + specialMsg;
+}
+
+function* IDgenerator(IDprefix=null) {
+    let ID = 0;
+
+    while (true) {
+        ++ID;
+
+        yield (IDprefix) ? IDprefix + ID : ID;
+    }
 }
 
 function main() {
@@ -143,4 +149,4 @@ function main() {
 
 main();
 
-export { stopSimulation, initSimulation, materializeInit, curMode };
+export { stopSimulation, initSimulation, materializeInit, IDgenerator, currMode };

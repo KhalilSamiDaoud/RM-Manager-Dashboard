@@ -1,6 +1,6 @@
 import { calcAvgWait, calcPassengersServed, calcRevenueGenerated, incrementGeneralTrips, resetGeneralVals, fareRate } from './simMath.js';
 import { createPopWindow, removePopWindow } from './popWindowList.js';
-import { windowType } from './constants.js';
+import { WINDOW_TYPE } from './constants.js';
 import { importFile } from './fileInput.js';
 import { checkMapResize } from './map.js';
 import { drawMaterial } from './barChart.js';
@@ -125,7 +125,7 @@ function getUserFare(evt) {
 
 function popStats() {
     if (!isStatsPoped()) {
-        statsWin = createPopWindow(windowType.statistics, 'ERSA - Statistics');
+        statsWin = createPopWindow(WINDOW_TYPE.statistics, 'ERSA - Statistics');
 
         M.Tooltip.getInstance(document.getElementById('popstats')).destroy();
 
@@ -171,7 +171,7 @@ function dockStats() {
         document.getElementById('detailstats').style.display = 'block';
         document.getElementById('statsplaceholder').style.display = 'none';
 
-        statsWin = removePopWindow(windowType.statistics);
+        statsWin = removePopWindow(WINDOW_TYPE.statistics);
         M.Tooltip.init(document.getElementById('detailstats'));
         M.Tooltip.init(document.getElementById('popstats'));
         drawMaterial();
