@@ -4,7 +4,7 @@
 
 DF_COLS = {
     'vehicle': 9,
-    # 'nodetype': 3,
+    'nodetype': 3,
     'schtime': 2,
     'PUlat': 32,
     'PUlong': 30,
@@ -14,9 +14,9 @@ DF_COLS = {
     'name': 17,
     'PUaddr': 1,
     'DOaddr': 4,
-    # 'reqtime': 19,
-    'trvtime': 23,
-    'trvdist': 22,
+    'reqtime': 19,
+    'trvtime': 22,
+    'trvdist': 21,
     'confnum':73,
     'phonenum': 70
 }

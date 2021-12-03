@@ -67,14 +67,21 @@ function clearClock() {
     initClock(1440);
 }
 
-function timeToString(time = clockCurrTime) {
+function timeToString(time = clockCurrTime, round = true) {
+    if (round)
+        time = ((time % 1) > 0.5) ? Math.ceil(time) : Math.floor(time);
+
     let hours = Math.floor(time / 60);
     let minutes = time % 60;
 
     if (hours < 12)
-        return (hours == 0) ? ("00" + hours + 12).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM' : ("00" + hours).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM';
+        return (hours == 0) ? ('00' + hours + 12).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' AM' :
+            ('00' + hours).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' AM';
+    else if (hours == 12)
+        return ('00' + 12).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' PM';
     else
-        return (hours == 24) ? ("00" + (hours - 12)).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' AM' : ("00" + (hours - 12)).slice(-2) + ':' + ("00" + minutes).slice(-2) + ' PM';
+        return (hours == 24) ? ('00' + (hours - 12)).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' AM' :
+            ('00' + (hours - 12)).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' PM';
 }
 
 function updateSimSpeed() {

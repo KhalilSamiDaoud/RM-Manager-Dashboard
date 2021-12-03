@@ -102,8 +102,12 @@ class LiveVehicle {
         this.symbol.setIcon(icon);
     }
 
-    removeMarker() {
+    hideMarker() {
         this.symbol.setMap(null);
+    }
+
+    showMarker() {
+        this.symbol.setMap(map);
     }
 
     addTrip(trip) {

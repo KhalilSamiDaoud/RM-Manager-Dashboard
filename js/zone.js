@@ -80,6 +80,18 @@ class Zone {
             this.vehiclesInZone.remove(vehicle.name);
     }
 
+    hideAllVehicles() {
+        this.vehiclesInZone.forEach(vehicle => {
+            vehicle.hideMarker();
+        });
+    }
+
+    showAllVehicles() {
+        this.vehiclesInZone.forEach(vehicle => {
+            vehicle.showMarker();
+        });
+    }
+
     getVehicles() {
         return [...vehiclesInZone.values()];
     }

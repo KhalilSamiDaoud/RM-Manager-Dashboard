@@ -2453,6 +2453,9 @@ var $jscomp$this = this;
                   this.options.closeOnClick &&
                     n.closest(".dropdown-content").length &&
                     !this.isTouchMoving
+                    // { KHALIL ADDED THIS
+                    && e.target.id != 'vehicle_search'
+                    // END OF ADDITION }
                     ? setTimeout(function () {
                       i.close();
                     }, 0)

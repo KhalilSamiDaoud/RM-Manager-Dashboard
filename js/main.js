@@ -8,9 +8,7 @@ import { initCalendar, updateLiveButton } from './calendar.js';
 import { drawMaterial } from './barChart.js';
 import { initLive } from './APIinput.js';
 import { initEvent } from './log.js';
-
-import './zoneList.js';
-import './liveQueue.js';
+import { initZoneSelect } from './zoneList.js';
 import { initLiveQueue } from './liveQueue.js';
 
 let currMode = INIT_MODE.none;
@@ -69,6 +67,7 @@ function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COOR
     }
 
     initLiveQueue();
+    initZoneSelect();
 
     drawStaticIcons();
 
@@ -114,8 +113,6 @@ function materializeInit() {
     if (!prevInitalized) {
         $('.sidenav').sidenav();
         $('.preloader').fadeOut('slow');
-        $('.dropdown-trigger').dropdown();
-        $('select').formSelect();
     }
     $('.modal').modal();
     $('.showable').show();

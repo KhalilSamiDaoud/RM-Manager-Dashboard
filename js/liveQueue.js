@@ -22,16 +22,17 @@ const VEHICLE_LIST_ENTRY_TYPE = {
 }
 
 queueWin.getElementById('popqueue').addEventListener('click', popQueue);
+VEHICLE_SEARCH.addEventListener('keyup', handleVehicleSearch);
 
 //init vehicle drop down element with options
-$('#vehicle_dropdown').dropdown({ closeOnClick: false, autoTrigger: false });
+$('#vehicle_dropdown').dropdown({ autoTrigger: false, onCloseEnd: resetVehicleSearch });
 
 function initLiveQueue() {
     if (liveQueueEntries.size != 0) clearLiveQueueEntries();
 
     createLiveQueueEntries();
 
-    for (const entry of [...liveQueueEntries.values()]) {
+    for (const entry of liveQueueEntries.values()) {
         if (entry?.vehicle) {
             updateVehicleDropdown(entry);
             entry.toggleTripListVisibility();
@@ -45,7 +46,45 @@ function handleVehicleSelect(vehicleEntry) {
     updateVehicleDropdown(vehicleEntry);
     activeVehicle.toggleTripListVisibility();
     vehicleEntry.toggleTripListVisibility();
-    activeVehicle = vehicleEntry
+    activeVehicle = vehicleEntry;
+}
+
+function handleVehicleSearch(evt) {
+    let filterString = evt.target.value.toUpperCase();
+    let entries = [...liveQueueEntries.values()];
+
+    for (let i=0; i < entries.length; i++) {
+        if (entries[i].type != VEHICLE_LIST_ENTRY_TYPE.divider) {
+            if (!entries[i].ID.includes(filterString)) {
+                entries[i].elem.classList.add('showable');
+
+                if (entries[i].type == VEHICLE_LIST_ENTRY_TYPE.zone)
+                    liveQueueEntries.get(entries[i].ID + '-divider').elem.classList.add('showable');
+            }
+            else {
+                entries[i].elem.classList.remove('showable');
+
+                if (entries[i].type == VEHICLE_LIST_ENTRY_TYPE.zone) {
+                    liveQueueEntries.get(entries[i].ID + '-divider').elem.classList.remove('showable');
+
+                    let x = i;
+                    while (x <= (i + entries[i].zone.vehiclesInZone.size)) {
+                        x++;
+                        entries[x].elem.classList.remove('showable');
+                    }
+                    i = x;
+                }
+            }
+        }
+    }
+}
+
+function resetVehicleSearch() {
+    VEHICLE_SEARCH.value = '';
+
+    for (const entry of [...liveQueueEntries.values()]) {
+        entry.elem.classList.remove('showable');
+    }
 }
 
 function createLiveQueueEntries() {
@@ -101,11 +140,11 @@ function popQueue() {
 
 //Only accepets Instances of 'Trip' Object! (see trip.js)
 class TripListEntry {
-    constructor(owner = null, tripObj = null) {
-        if (!(tripObj instanceof Trip)) this._throw('No Trip Specified.');
+    constructor(parent = null, tripObj = null) {
+        if (!(tripObj instanceof Trip)) this.#_throw('No Trip Specified.');
 
         this.trip = tripObj;
-        this.owner = owner;
+        this.parent = parent;
 
         this.fullyInit = false;
 
@@ -113,7 +152,7 @@ class TripListEntry {
     }
 
     constructElement() {
-        if (!this.owner.tripsElem) return;
+        if (!this.parent.tripsElem) return;
 
         this.elem = queueWin.createElement('li');
         this.elem.setAttribute('class', 'live-triplist-item card-panel white collection-item avatar');
@@ -140,7 +179,7 @@ class TripListEntry {
         this.elem.appendChild(this.elem.tripAdr);
 
         this.fullyInit = true;
-        this.owner.tripsElem.appendChild(this.elem);
+        this.parent.tripsElem.appendChild(this.elem);
     }
 
     setActive() {
@@ -148,8 +187,8 @@ class TripListEntry {
 
         this.elem.tripETA = queueWin.createElement('span');
         this.elem.tripETA.setAttribute('class', 'trip-eta cyan-text text-darken-1');
-        if (this.trip.schTime && this.trip.speed)
-            this.elem.tripETA.innerText = 'Eta. ' + timeToString(parseTime(this.trip.schTime) + this.trip.speed);
+        if (this.trip.schTime && this.trip.travelTime)
+            this.elem.tripETA.innerText = 'Eta. ' + timeToString(parseTime(this.trip.schTime) + this.trip.travelTime);
         else
             this.elem.tripETA.innerText = 'Unknown Eta.';
 
@@ -173,12 +212,12 @@ class TripListEntry {
 
     destroy() {
         this.trip = null;
-        this.owner = null;
+        this.parent = null;
 
         this?.elem.remove();
     }
 
-    _throw(msg) {
+    #_throw(msg) {
         throw new Error(msg);
     }
 }
@@ -190,12 +229,12 @@ class VehicleListEntry {
 
         switch(this.type) {
             case VEHICLE_LIST_ENTRY_TYPE.vehicle:
-                this.vehicle = (refObj) ? refObj : this._throw('No Vehicle Specified.');
-                this.ID = refObj.name;
+                this.vehicle = (refObj) ? refObj : this.#_throw('No Vehicle Specified.');
+                this.ID = String(refObj.name);
                 this.tripList = new Map();
                 break;
             case VEHICLE_LIST_ENTRY_TYPE.zone:
-                this.zone = (refObj) ? refObj : this._throw('No Zone Specified.');
+                this.zone = (refObj) ? refObj : this.#_throw('No Zone Specified.');
                 this.ID = refObj.name;
                 break;
             default:
@@ -253,17 +292,47 @@ class VehicleListEntry {
     populateTripList() {
         if (!this.vehicle) return;
 
+        this.clearTripList();
+
         this.tripsElem = queueWin.createElement('ul');
         this.tripsElem.setAttribute('class', 'collection white scrollbar-primary triplist showable');
 
-        this.vehicle.assignedTrips.forEach(trip => {
-            this.tripList.set( trip.confirmation, new TripListEntry(this, trip));
-        });
+        if (this.vehicle.assignedTrips.size != 0) {
+            this.vehicle.assignedTrips.forEach(trip => {
+                this.tripList.set(trip.confirmation, new TripListEntry(this, trip));
+            });
 
-        if(this.tripList.size != 0)
             [...this.tripList.values()][0].setActive();
+        }
+        else
+            this.#createEmptyList();
 
         QUEUE_LISTS.appendChild(this.tripsElem);
+    }
+
+    #createEmptyList() {
+        if (!this.tripsElem) return;
+
+        let emptyElem;
+        let i = 0;
+
+        while (i < 3) {
+            emptyElem = queueWin.createElement('li');
+            emptyElem.setAttribute('class', 'live-triplist-empty valign-wrapper');
+
+            if (i == 0) {
+                emptyElem.textNode = queueWin.createElement('span');
+                emptyElem.textNode.setAttribute('style', 'margin:auto;');
+                emptyElem.textNode.innerText = 'No assigned trips.';
+
+                emptyElem.appendChild(emptyElem.textNode);
+            }
+            else
+                emptyElem.style.opacity = (1 / (i * 3));
+
+            this.tripsElem.appendChild(emptyElem);
+            i++;
+        }
     }
 
     clearTripList() {
@@ -292,9 +361,9 @@ class VehicleListEntry {
         this.tripsElem.classList.toggle('showable');
     }
 
-    _throw(msg) {
+    #_throw(msg) {
         throw new Error(msg); 
     }
 }
 
-export { initLiveQueue };
+export { initLiveQueue, queueWin };

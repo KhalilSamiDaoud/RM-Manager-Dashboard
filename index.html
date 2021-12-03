@@ -120,11 +120,11 @@
                             </a>
 
                             <!-- Dropdown Structure -->
-                            <ul id="vehicle_list" class="dropdown-content scrollbar-primary" style="max-height:500px; overflow-y:scroll;">
-                                <li id="vehicle_search" class="grey lighten-4">
+                            <ul id="vehicle_list" class="dropdown-content scrollbar-primary" style="max-height: 500px; min-height: 300px; min-width: 180px; overflow-y:scroll;">
+                                <li id="search_vehicles" class="grey lighten-4">
                                     <div class="input-field inline" style="height: 40px; width: auto; margin-top: -5px; margin-left: 5px;">
                                         <i class="material-icons prefix grey-text text-darken-1" style="margin-top: 5px; margin-left:5px;">search</i>
-                                        <input id="search_vehicles" type="text" placeholder="Search Vehicles" style="border-bottom: 0px solid #000; box-shadow: 0 0px 0 0 #000; margin-top: 7px;">
+                                        <input id="vehicle_search" type="text" placeholder="Search Vehicles" style="border-bottom: 0px solid #000; box-shadow: 0 0px 0 0 #000; margin-top: 7px;">
                                     </div>
                                 </li>
                             </ul>
@@ -135,15 +135,13 @@
                         <!-- Content filled in tripQueue.js -->
                     </div>
 
-                    <div id="zonepicker" class="queuefooter">
-                        <div class="input-field col s12 center">
-                            <select multiple class="white-text">
+                    <div class="queuefooter">
+                        <div id="zone_picker" class="input-field col s12 center">
+                            <select id="zone_select" multiple>
+                                <!-- Content filled in zoneList.js -->
                                 <option value="0" selected>Show All Zones</option>
-                                <option value="1">Zone 1</option>
-                                <option value="2">Zone 2</option>
-                                <option value="3">Zone 3</option>
                             </select>
-                            <label class="white-text" style="font-size: 16px"><b>Zone Filter:</b></label>
+                            <label class="white-text" style="font-size: 16px">Zone Filter:</label>
                         </div>
                     </div>
                 </div>
