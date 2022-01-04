@@ -1,10 +1,14 @@
-import { vehicles, liveVehicles, createVehicle, createLiveVehicle, clearVehicles, sortVehicleList } from './vehicleList.js';
+import { vehicles, liveVehicles, createVehicle, createLiveVehicle, clearVehicles, sortVehicleList, updateVehicleInformation } from './vehicleList.js';
 import { calcWaitTime } from './simMath.js';
 import { createZone } from './zoneList.js';
 import { TRIP_TYPE } from './constants.js';
+import { addAPIEvent } from './liveLog.js';
 import { Trip } from './trip.js';
 
 const timer = ms => new Promise(res => setTimeout(res, ms));
+
+const CURR_DATE = new Date();
+const CURR_DATE_STRING = new Date().toLocaleDateString();
 
 function findColIndex(tripListObj) {
     return {
@@ -152,7 +156,7 @@ function getVehiclesFromJSON(records, fileColumns) {
 
 function getLiveVehiclesFromJSON(records, fileColumns) {
     records.forEach(record => {
-        createLiveVehicle(record[fileColumns.vehID], 10, 0, { lat: record[fileColumns.vehLat], lng: record[fileColumns.vehLng] }, 
+        createLiveVehicle(record[fileColumns.vehID], record[fileColumns.vehCapacity], record[fileColumns.vehLoad], { lat: record[fileColumns.vehLat], lng: record[fileColumns.vehLng] },
             record[fileColumns.vehZone], record[fileColumns.vehHeading], record[fileColumns.vehColor]);
     });
 }
@@ -168,10 +172,36 @@ function getLiveTripsFromJSON(records, fileColumns) {
         if (records[i][fileColumns.vehID] == -1 || records[i][fileColumns.vehID] == 0) 
             continue;
 
+        if (liveVehicles.has(records[i][fileColumns.vehID]))
+            if (new Date(records[i][fileColumns.scheduledPUTime]).toLocaleDateString() === CURR_DATE_STRING)
+                liveVehicles.get(records[i][fileColumns.vehID]).addTrip(new Trip({liveRecord: records[i]}));
+    }
+}
+
+function getLiveAlertsFromJSON(records, fileColumns) {
+    records.forEach(record => {
+        addAPIEvent(record[fileColumns.message], record[fileColumns.details], record[fileColumns.dateTime], record[fileColumns.affiliateID], null, null);
+    });
+}
+
+function updateLiveTripsFromJSON(records, fileColumns) {
+    for (let i = 0; i < records.length; i++) {
+        if (records[i][fileColumns.vehID] == -1 || records[i][fileColumns.vehID] == 0)
+            continue;
+
         if (liveVehicles.has(records[i][fileColumns.vehID])) {
-            liveVehicles.get(records[i][fileColumns.vehID]).addTrip(new Trip({liveRecord: records[i]}));
+            if(new Date(records[i][fileColumns.scheduledPUTime]).toLocaleDateString() === CURR_DATE_STRING) {
+                if (liveVehicles.get(records[i][fileColumns.vehID]).assignedTrips.has(records[i][fileColumns.confirmationNum])) {
+                    liveVehicles.get(records[i][fileColumns.vehID]).assignedTrips.get(records[i][fileColumns.confirmationNum]).constructLiveTrip(records[i]);
+                }
+                else {
+                    liveVehicles.get(records[i][fileColumns.vehID]).addTrip(new Trip({ liveRecord: records[i] }));
+                }
+            }
         }
     }
+
+    updateVehicleInformation();
 }
 
 //this function limits the amount of vehicle updates /w throttle timer
@@ -188,7 +218,7 @@ async function updateLiveVehiclesFromJSON(records, fileColumns) {
         if (liveVehicles.has(records[i][fileColumns.vehID]))
             liveVehicles.get(records[i][fileColumns.vehID]).updateMarker({ lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
         else
-            createLiveVehicle(records[i][fileColumns.vehID], 10, 0, { lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
+            createLiveVehicle(records[i][fileColumns.vehID], records[i][fileColumns.vehCapacity], records[i][fileColumns.vehLoad], { lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
     }
 }
 
@@ -271,5 +301,6 @@ function getQueueFromJSON(records, fileColumns) {
     });
 }
 
-export { findColIndex, getMapCenter, fullParse, parseTime, trimStreetNames, findVehicleIndex, getClockStartTime, 
-    getLiveVehiclesFromJSON, updateLiveVehiclesFromJSON, getZonesFromJSON, getLiveTripsFromJSON }
+export {
+    findColIndex, getMapCenter, fullParse, parseTime, trimStreetNames, findVehicleIndex, getClockStartTime, getLiveAlertsFromJSON,
+    getLiveVehiclesFromJSON, updateLiveVehiclesFromJSON, getZonesFromJSON, getLiveTripsFromJSON, updateLiveTripsFromJSON }

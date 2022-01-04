@@ -7,6 +7,8 @@ import { isLogPoped } from './log.js';
 var map;
 var mapCenter;
 
+let trafficLayer;
+
 function initMap(area) {
     mapCenter = area;
 
@@ -215,12 +217,15 @@ function initMap(area) {
         ]
     });
 
+    trafficLayer = new google.maps.TrafficLayer();
+
     const centerControlDiv = document.createElement("div");
-    CenterControl(centerControlDiv, map);
+    centerControl(centerControlDiv);
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
 
-    const trafficLayer = new google.maps.TrafficLayer();
-    trafficLayer.setMap(map);
+    const trafficControlDiv = document.createElement("div");
+    trafficControl(trafficControlDiv);
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(trafficControlDiv);
 }
 
 function createVehicleIcon(vehicle) {
@@ -414,15 +419,13 @@ function checkMapResize() {
 }
 
 
-function CenterControl(controlDiv, map) {
+function centerControl(controlDiv) {
     const controlUI = document.createElement("div");
-    controlUI.classList.add('gmap-centerdiv');
+    controlUI.classList.add('gmap-centerdiv-corner');
     controlUI.classList.add('tooltipped');
     controlUI.title = "Click to recenter the map";
 
     controlUI.setAttribute('id', 'centerbtn');
-    controlUI.setAttribute('data-position', 'bottom');
-    controlUI.setAttribute('data-tooltip', 'Center map');
     controlDiv.appendChild(controlUI);
 
     const controlText = document.createElement("div");
@@ -433,6 +436,28 @@ function CenterControl(controlDiv, map) {
     controlUI.addEventListener("click", () => {
         map.setCenter(mapCenter);
         map.setZoom(12);
+    });
+}
+
+function trafficControl(controlDiv) {
+    const controlUI = document.createElement("div");
+    controlUI.classList.add('gmap-centerdiv');
+    controlUI.classList.add('tooltipped');
+    controlUI.title = "Toogle Traffic Layer";
+
+    controlUI.setAttribute('id', 'trafficbtn');
+    controlDiv.appendChild(controlUI);
+
+    const controlText = document.createElement("div");
+    controlUI.classList.add('gmap-centericon');
+    controlText.innerHTML = '<i class="material-icons white-text" style="font-size:42px;">traffic</i>';
+    controlUI.appendChild(controlText);
+
+    controlUI.addEventListener("click", () => {
+        if(trafficLayer.getMap())
+            trafficLayer.setMap(null);
+        else
+            trafficLayer.setMap(map);
     });
 }
 

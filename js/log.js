@@ -1,4 +1,4 @@
-import { TRIP_TYPE, WINDOW_TYPE, EVENT_SEVERITY, WARNING_COLORS } from './constants.js';
+import { TRIP_TYPE, WINDOW_TYPE, EVENT_SEVERITY } from './constants.js';
 import { createPopWindow, removePopWindow } from './popWindowList.js';
 import { timeToString } from './clock.js';
 import { checkMapResize } from './map.js';

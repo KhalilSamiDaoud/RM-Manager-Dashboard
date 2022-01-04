@@ -1,11 +1,11 @@
-import { TRIP_TYPE, API_COLUMNS_TRIPS, API_COLUMNS_LIVE_TRIPS } from "./constants.js";
+import { TRIP_TYPE, API_COLUMNS_LIVE_TRIPS } from "./constants.js";
 
 // /!\ PASS JSON PARAMETERS TO THIS OBJECT /!\
 // define {liveRecord: [...arr], ...} for quick build from API input
 // define {simRecord: [...arr], ...} for quick build from API input
 class Trip {
     constructor(params = null) {
-        if (!params) this._throw('Invalid JSON parameter list.');
+        if (!params) this.#_throw('Invalid JSON parameter list.');
 
         if(params?.liveRecord) {
             this.constructLiveTrip(params.liveRecord);
@@ -30,14 +30,12 @@ class Trip {
         this.waitTime = (params?.waitTime) ? params.waitTime : 0;
         this.passengers = (params?.passengers) ? params.passengers : 0;
         this.distance = (params?.distance) ? params.distance : 0;
-        this.schTime = (params?.schTime) ? params.schTime : 0;
+        this.schTime = (params?.schTime) ? new Date(params.schTime) : '';
         this.confirmation = (params?.confirmation) ? params.confirmation : 0;
     }
 
     constructLiveTrip(trip) {
         try {
-            this.type = TRIP_TYPE.generic;
-
             this.PUcoords = {
                 lat: trip[API_COLUMNS_LIVE_TRIPS.PUlat],
                 lng: trip[API_COLUMNS_LIVE_TRIPS.PUlng]
@@ -56,8 +54,22 @@ class Trip {
             this.travelTime = trip[API_COLUMNS_LIVE_TRIPS.estTime];
             this.passengers = trip[API_COLUMNS_LIVE_TRIPS.passengers];
             this.distance = trip[API_COLUMNS_LIVE_TRIPS.estDistance];
-            this.schTime = trip[API_COLUMNS_LIVE_TRIPS.scheduleTime];
             this.confirmation = trip[API_COLUMNS_LIVE_TRIPS.confirmationNum];
+            this.status = trip[API_COLUMNS_LIVE_TRIPS.status];
+
+            this.schPUDateTime = new Date(trip[API_COLUMNS_LIVE_TRIPS.scheduledPUTime].replace('GMT', 'EST'));
+            this.schPUTime = this.schPUDateTime.toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit'
+            });
+
+            this.schDODateTime = new Date(trip[API_COLUMNS_LIVE_TRIPS.scheduledDOTime].replace('GMT', 'EST'));
+            this.schDOTime = this.schDODateTime.toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit'
+            });
+
+            this.active = this.#determineActive(this.status);
         }
         catch(err) {
             this._throw('Invalid Live record: ' + err);
@@ -65,10 +77,28 @@ class Trip {
     }
 
     constructSimTrip(trip) {
-
+        //fill
     }
 
-    _throw(err) { throw new Error(err); }
+    #determineActive(status) {
+        switch (status) {
+            case ('BIDOFFERED'):
+            case ('ACCEPTED'):
+            case ('ASSIGNED'):
+            case ('IRTPU'):
+            case ('PICKEDUP'):
+                return true;
+            case ('ATLOCATION'):
+            case ('CANCELLED'):
+            case ('NOSHOWREQ'):
+            case ('NOSHOW'):
+            case ('NONE'):
+            default:
+                return false;
+        }
+    }
+
+    #_throw(err) { throw new Error(err); }
 }
 
 export { Trip };

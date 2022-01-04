@@ -1,15 +1,14 @@
-import { createGeneralStats, createVehicleStats, clearGeneralStats, clearVehicleStats } from './statisticsList.js';
-import { INIT_COORDS, INIT_MODE, INIT_EVENT_TYPE, LIVE_NOTIF, SIM_NOTIF} from './constants.js';
-import { createTripTabs, createTripLists, clearTripTabs, clearTripLists } from './tripQueue.js';
-import { initClock, startSYSClock, startSIMClock, stopClock } from './clock.js';
+import { INIT_COORDS, INIT_MODE, LIVE_NOTIF, SIM_NOTIF, LOG_ENTRY_TYPES } from './constants.js';
+import { initClock, startSYSClock, startSIMClock } from './clock.js';
 import { initMap, createVehicleIcon, drawStaticIcons } from './map.js';
 import { liveVehicles, populateRandVehicles, vehicles } from './vehicleList.js';
 import { initCalendar, updateLiveButton } from './calendar.js';
 import { drawMaterial } from './barChart.js';
 import { initLive } from './APIinput.js';
-import { initEvent } from './log.js';
-import { initZoneSelect } from './zoneList.js';
+import { addEvent } from './liveLog.js';
 import { initLiveQueue } from './liveQueue.js';
+import { initZoneSelect } from './zoneList.js';
+import { initSettings } from './settings.js';
 
 let currMode = INIT_MODE.none;
 let prevInitalized = false;
@@ -19,6 +18,7 @@ function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COOR
     updateLiveButton(mode);
     initCalendar(mode);
     initClock(startTime);
+    initSettings();
     initMap(coords);
 
     // if (prevInitalized) {
@@ -33,16 +33,16 @@ function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COOR
     switch (mode) {
         case INIT_MODE.test:
             populateRandVehicles(3);
-            initEvent(INIT_EVENT_TYPE.test);
+            addEvent(LOG_ENTRY_TYPES.test);
             break;
         case INIT_MODE.file:
-            initEvent(INIT_EVENT_TYPE.file);
+            addEvent(LOG_ENTRY_TYPES.file);
             break;
         case INIT_MODE.API:
-            initEvent(INIT_EVENT_TYPE.API);
+            addEvent(LOG_ENTRY_TYPES.API);
             break;
         case INIT_MODE.live:
-            initEvent(INIT_EVENT_TYPE.live);
+            addEvent(LOG_ENTRY_TYPES.live);
             break;
         default:
             return;
@@ -63,6 +63,9 @@ function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COOR
     else {
         liveVehicles.forEach(vehicle => {
             vehicle.createLiveVehicle();
+            vehicle.updateInfoBox();
+            vehicle.updateVehiclePath();
+            vehicle.createMarkers();
         });
     }
 
@@ -75,8 +78,6 @@ function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COOR
         materializeReload();
     else
         materializeInit();
-
-    drawMaterial();
 
     if (!prevInitalized)
         prevInitalized = true;
@@ -97,7 +98,7 @@ async function startSequence() {
     }
     catch (error) {
         console.error('DASH-API Initialization error: ', error);
-        initEvent(INIT_EVENT_TYPE.APIError);
+        addEvent(LOG_ENTRY_TEXT.APIError);
         initSimulation(INIT_MODE.test);
     }
 }
@@ -113,6 +114,7 @@ function materializeInit() {
     if (!prevInitalized) {
         $('.sidenav').sidenav();
         $('.preloader').fadeOut('slow');
+        $('.timepicker').timepicker({container: 'body'});
     }
     $('.modal').modal();
     $('.showable').show();

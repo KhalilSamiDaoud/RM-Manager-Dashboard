@@ -4,7 +4,7 @@ from flask_restful import Api
 import pandas as pd
 import pyodbc
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import geopy 
 from geopy.geocoders import GoogleV3 
@@ -43,6 +43,7 @@ class thread2:
             self.old_data = self.compiled_data
             self.compiled_data = []
             self.df = pd.read_sql(constants.DB_SMART_DEVICE, self.conn)
+            self.df = self.df.fillna(0)
             self.count = 0
             self.breakOuter = False
 
@@ -75,7 +76,8 @@ class thread2:
                     float(row[constants.LOC_COLS['stop-long']]),
                     row[constants.LOC_COLS['avlzone']],
                     row[constants.LOC_COLS['veh-color']],
-                    int(row[constants.LOC_COLS['affiliateID']])
+                    int(row[constants.LOC_COLS['affiliateID']]),
+		            int(row[constants.LOC_COLS['capacity']])
 
                 ]
                 self.compiled_data.append(self.new_item)
@@ -95,7 +97,7 @@ class thread2:
             self.response = ""
             self.conn = pyodbc.connect(constants.DB_CONNECT_CRED)
 
-        def format_row(self, row):            
+        def format_row(self, row):
             row[constants.DF_COLS['schtime']] = str(row[constants.DF_COLS['schtime']]).split()[1] \
                 if row[constants.DF_COLS['schtime']] \
                 else ''
@@ -118,18 +120,27 @@ class thread2:
             #     print(row[constants.DF_COLS['idletime']])
             #     row[constants.DF_COLS['idletime']] = 0
 
-        def get_today_trips(self):
-            self.df = pd.read_sql(constants.DB_QUERY_TRIPS, self.conn)
+        def get_today_trips(self, date):
+            self.compiled_data = []
+            self.one_day = timedelta(days=1)
+            self.tomorrow_date = date + self.one_day
+            #print(self.tomorrow_date)
+            query = constants.DB_QUERY_TRIPS.replace('{{ date }}', str(date))
+            query1 = query.replace('{{ date1 }}', str(self.tomorrow_date))
+            self.df = pd.read_sql(query1, self.conn)
             self.df = self.df.fillna(0)
-            
+            self.conf = []
             for index, row in self.df.iterrows():
-                self.format_row(row)
-                 
+                # if row[constants.DF_COLS['vehicle']] is None:
+                #     continue
+
                 self.new_entry = [
+                    0,
                     row[constants.DF_COLS['vehicle']],
                     # row[constants.DF_COLS['nodetype']],
                     # row[constants.DF_COLS['reqtime']],
                     row[constants.DF_COLS['schtime']],
+		            row[constants.DF_COLS['schdotime']],
                     int(row[constants.DF_COLS['passcount']]),
                     row[constants.DF_COLS['name']],
                     float(row[constants.DF_COLS['PUlat']]),
@@ -142,7 +153,8 @@ class thread2:
                     float(row[constants.DF_COLS['trvdist']]),
                     # row[constants.DF_COLS['idletime']],
                     int(row[constants.DF_COLS['confnum']]),
-                    row[constants.DF_COLS['phonenum']]
+                    row[constants.DF_COLS['phonenum']],
+                    row[constants.DF_COLS['status']]
                 ]
                 self.compiled_data.append(self.new_entry)
 
@@ -154,9 +166,10 @@ class thread2:
         def get_future_trips(self, date):
             self.compiled_data = []
             self.df = pd.read_sql(constants.FUTURE_DB_QUERY_TRIPS.replace('{{ date }}', date), self.conn)
+            self.df = self.df.fillna(0)
 
             for index, row in self.df.iterrows():
-                self.format_row(row)
+                # self.format_row(row)
 
                 self.new_entry = [
                     0,
@@ -189,6 +202,7 @@ class thread2:
 
         def get_zones(self):
             self.df = pd.read_sql(constants.DB_ZONES, self.conn)
+            self.df = self.df.fillna(0)
             # self.df.to_csv('zones.csv')
             for index, row in self.df.iterrows():
                 self.new_entry = [
@@ -208,9 +222,34 @@ class thread2:
             self.response = ""
             self.conn = pyodbc.connect(constants.DB_CONNECT_CRED)
 
-        def get_alerts(self, date):
-            self.df = pd.read_sql(constants.DB_ALERTS.replace('{{ date }}', date), self.conn)
+        def get_alerts(self, date, time):
+            self.one_minute = timedelta(minutes = 1)
+            self.minus_minute = time - self.one_minute
+            self.oldtime = self.minus_minute.time()
+            self.dtime_with_decimals = datetime.combine(date, self.oldtime)
+            self.dtime = self.dtime_with_decimals.strftime('%m/%d/%Y %H:%M:%S')
+            print(self.dtime)
+            self.df = pd.read_sql(constants.DB_ALERTS.replace('{{ date }}', str(self.dtime)), self.conn)
+            self.df = self.df.fillna(0)
+            # for index, row in self.df.iterrows():
+            #     words = row[constants.ALERT_COLS['message']].split(" ")
+            #     print(words)
+
             for index, row in self.df.iterrows():
+                self.words = row[constants.ALERT_COLS['message']].split(" ")
+                
+                print(self.words)
+                self.first_two = str(self.words[0]) + " " + str(self.words[1])
+                print(self.first_two)
+                if self.first_two == "NO SHOW":
+                    pass
+                elif self.words[0] == "Emergency":
+                    pass
+                elif self.words[0] == "Speeding":
+                    pass
+                else:
+                    continue
+
                 self.new_entry = [
                     row[constants.ALERT_COLS['message']],
                     row[constants.ALERT_COLS['details']],
@@ -239,7 +278,9 @@ trips = thr2.Trips()
 @app.route('/get-today-trips', methods=['GET'])
 @cross_origin()
 def get_trip_data():
-    return trips.get_today_trips()
+    today = datetime.today()
+    todaydate = today.date()
+    return trips.get_today_trips(todaydate)
 
 @app.route('/get-future-trips', methods=['GET'])
 @cross_origin()
@@ -259,7 +300,8 @@ alerts = thr2.Alerts()
 def get_alert_data():
     today = datetime.today()
     todaydate = today.date()
-    return alerts.get_alerts(str(todaydate))
+    todaytime = datetime.now()
+    return alerts.get_alerts(todaydate, todaytime)
 
 
 
@@ -278,4 +320,4 @@ def __main__():
     
 
 if __name__ == "__main__":
-    app.run(host='192.168.8.25', port='1235', debug=True, threaded=True)
+    app.run(host='192.168.13.81', port='1222', debug=True, threaded=True)

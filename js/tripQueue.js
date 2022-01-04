@@ -286,4 +286,5 @@ function isQueuePoped() {
     return queueWin != document;
 }
 
-export { createTripTabs, createTripLists, assignNewQueue, updateTripTab, progressBar, setCurrTripIdle, setCurrTripActive, clearCurrTrip, clearTripTabs, clearTripLists, isQueuePoped, dockQueue };
+export { createTripTabs, createTripLists, assignNewQueue, updateTripTab, progressBar, setCurrTripIdle,
+        clearCurrTrip, clearTripTabs, clearTripLists, isQueuePoped, dockQueue, setCurrTripActive };

@@ -1,5 +1,19 @@
+:root {
+  --primary-theme: #fbc02d;
+  --secondary-theme: #757575;
+}
+
+.primary-theme {
+  background-color: var(--primary-theme);
+}
+
+.secondary-theme {
+  background-color: var(--secondary-theme);
+}
+
 html,
 body {
+  overflow: hidden;
   height: 100%;
   margin: 0;
 }
@@ -206,7 +220,7 @@ div#modalfare {
   padding-right: 15px;
   padding-top: 0px;
   padding-bottom: 0px;
-  margin: 5px;
+  margin: 5px 10px 5px 5px;
   width: 99%;
   min-height: 35px;
   height: min-content;
@@ -492,9 +506,17 @@ div#modalfare {
   margin-right: auto;
 }
 
-.gmap-centerdiv {
+.gmap-centerdiv-corner {
   background: rgb(0, 0, 0, 0.5);
   border-radius: 3px 15px 3px 3px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.gmap-centerdiv {
+  background: rgb(0, 0, 0, 0.5);
+  border-radius: 3px 3px 3px 3px;
+  margin-right: 5px;
   cursor: pointer;
   text-align: center;
 }
@@ -640,6 +662,11 @@ div#modalfare {
 }
 
 .no-file-selected {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.disable-control {
   opacity: 0.5;
   pointer-events: none;
 }
@@ -825,6 +852,8 @@ div#modalfare {
 }
 
 .live-triplist-item .trip-title-bar .trip-eta {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
   font-size: 14px; 
   line-height: 28px;
   margin-left: auto;
@@ -869,4 +898,43 @@ div#modalfare {
   border-color: #9e9e9e;
   border-width: 2px;
   border-radius: 5px;
+}
+
+.queue-bar-button {
+  height: 42px; 
+  line-height: 42px; 
+  display: flex; 
+  width: fit-content; 
+  align-items: center; 
+  justify-content: center; 
+  margin-left: auto; 
+  margin-right: 20px;
+}
+
+.queue-bar-button i:first-child {
+  font-size:28px;
+}
+
+.semi-transparent {
+  opacity: .66 !important;
+}
+
+.pickup-label {
+  font-size: 12px !important;
+  transform: translateY(175%);
+  background-color: #66bb6a;
+  border-radius: 10px;
+  padding: 4px 4px 4px 4px;
+}
+
+.dropoff-label {
+  font-size: 12px !important;
+  transform: translateY(175%);
+  background-color: #1e88e5;
+  border-radius: 10px;
+  padding: 4px 4px 4px 4px;
+}
+
+.no-scroll {
+  overflow-y: hidden !important;
 }

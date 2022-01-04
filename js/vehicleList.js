@@ -1,4 +1,5 @@
 import {TEST_ID_LETTERS, COLORS, VEHICLE_TYPE, TEST_STOPS} from './constants.js';
+import { updateVehicleTripLists } from './liveQueue.js';
 import { LiveVehicle } from './liveVehicle.js';
 import { Vehicle } from './vehicle.js';
 import { Trip } from './trip.js';
@@ -43,10 +44,10 @@ function createVehicle(vehID, vehCap, startTime) {
 }
 
 //get vehicle type eventually
-function createLiveVehicle(vehID, vehCap, startTime, startPos=null, zone=null, heading=null, color=null) {
+function createLiveVehicle(vehID, vehCap, vehLoad, startPos=null, zone=null, heading=null, color=null) {
     if (liveVehicles.has(vehID)) return;
 
-    liveVehicles.set(vehID, new LiveVehicle(vehID, VEHICLE_TYPE.sedan, vehCap, startTime, startPos, zone, heading, color));
+    liveVehicles.set(vehID, new LiveVehicle(vehID, VEHICLE_TYPE.sedan, vehCap, vehLoad, startPos, zone, heading, color));
 }
 
 function clearVehicles() {
@@ -68,6 +69,16 @@ function sortVehicleList() {
     vehicles.sort(vehicleStartTimeCompare);
 }
 
+function updateVehicleInformation() {
+    updateVehicleTripLists();
+    
+    liveVehicles.forEach( vehicle => {
+        vehicle.updateInfoBox();
+        vehicle.updateMarkers();
+        vehicle.updateVehiclePath();
+    });
+}
+
 function vehicleStartTimeCompare(a, b) {
     if (a.startTime < b.startTime)
         return -1;
@@ -85,4 +96,5 @@ function isAllDepot() {
     return true;
 }
 
-export { populateRandVehicles, createVehicle, createLiveVehicle, clearVehicles, clearLiveVehicles, sortVehicleList, isAllDepot, vehicles, liveVehicles };
+export { populateRandVehicles, createVehicle, createLiveVehicle, clearVehicles, clearLiveVehicles, 
+    sortVehicleList, isAllDepot, updateVehicleInformation, vehicles, liveVehicles };

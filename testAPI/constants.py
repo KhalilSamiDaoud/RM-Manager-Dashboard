@@ -4,8 +4,9 @@
 
 DF_COLS = {
     'vehicle': 9,
-    'nodetype': 3,
-    'schtime': 2,
+    # 'nodetype': 3,
+    'schtime': 176,
+    'schdotime':177,
     'PUlat': 32,
     'PUlong': 30,
     'DOlat':33,
@@ -14,11 +15,13 @@ DF_COLS = {
     'name': 17,
     'PUaddr': 1,
     'DOaddr': 4,
-    'reqtime': 19,
+    # 'reqtime': 19,
     'trvtime': 22,
     'trvdist': 21,
     'confnum':73,
-    'phonenum': 70
+    'phonenum': 70,
+    'status': 92,
+    'capactiy':16
 }
 
 DF_FUTURE_COLS = {
@@ -91,7 +94,7 @@ ZONE_LOCATIONS = """
             usp_Zone_GetVertices
             WITH (NOLOCK)
 """
-DB_QUERY_TRIPS = "SELECT * FROM SERVICEREQUESTSONDEMAND WITH (NOLOCK)"
+DB_QUERY_TRIPS = "SELECT * FROM ServiceRequestsOnDemand S WITH (NOLOCK) WHERE S.dtPickupDate > '{{ date }}' and S.dtPickupDate < '{{ date1 }}'"
 
 # Without SET NOCOUNT ON in the query the whole query will break!!!!
 FUTURE_DB_QUERY_TRIPS =  """

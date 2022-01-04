@@ -1,7 +1,7 @@
 import { Zone } from "./zone.js";
 import { queueWin } from './liveQueue.js';
 
-const ZONE_SELECT = queueWin.getElementById('zone_select');
+const ZONE_SELECT = document.getElementById('zone_select');
 
 var zones = new Map();
 
@@ -36,7 +36,7 @@ function clearZones() {
 function initZoneSelect() {
     let tempElem;
 
-    [...zones.values()].forEach( zone => {
+    zones.forEach( zone => {
         if(zone.vehiclesInZone.size != 0) {
             tempElem = queueWin.createElement('option');
             tempElem.innerHTML = '<option value="' + zone.name + '">' + zone.name + '</option>';
@@ -55,11 +55,9 @@ function handleZoneFilterSelect() {
         zones.forEach(zone => {
             zone.showAllVehicles();
         });
-
-        return;
     }
     else {
-        [...zones.values()].forEach(zone => {
+        zones.forEach(zone => {
             zone.hideAllVehicles();
         });
 

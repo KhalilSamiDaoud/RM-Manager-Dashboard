@@ -1,33 +1,50 @@
+import { handleVehicleSelect, liveQueueEntries, activeVehicle } from './liveQueue.js';
+import { VEHICLE_TYPE, DLINE_SYMBOL } from './constants.js';
 import { liveVehicles } from './vehicleList.js';
-import { VEHICLE_TYPE } from './constants.js';
+import { LiveMarker } from './liveMarker.js';
 import { zones } from './zoneList.js';
 import { map } from './map.js';
 
 class LiveVehicle {
-    constructor(name = 'N/A', type = VEHICLE_TYPE.sedan, maxCapacity = 0, startTime = 0, currPos = null, zoneID = null, heading = 0, color = 'black') {
+    constructor(name = 'N/A', type = VEHICLE_TYPE.sedan, maxCapacity = 0, currCapacity = 0, currPos = null, zoneID = null, heading = 0, color = 'black') {
         this.maxCapacity = maxCapacity;
-        this.startTime = startTime;
+        this.currCapacity = currCapacity;
         this.currPos = currPos;
         this.heading = heading;
         this.type = type;
         this.name = name;
+
+        this.tripsCompleted = 0;
         
         this.zone = (zones.has(zoneID)) ? zones.get(zoneID) : zones.get('none');
         this.zone.addVehicle(this);
 
+        //ID by confirmation num
         this.assignedTrips = new Map();
+        //ID by confirmation num
+        this.tripMarkers = new Map();
 
         this.color = (color) ? color : 'black';
+
+        this.path = new google.maps.Polyline({
+            path: [this.currPos],
+            strokeOpacity: 0,
+            icons: [
+                {
+                    icon: DLINE_SYMBOL,
+                    offset: '0%',
+                    repeat: '20px'
+                }]
+        });
 
         this.infoContent =
             '<div class="zone-info"><b>Vehicle: ' + this.name + '</b>' +
             '<div class="divider"></div>' +
-            '<p>Performing Trip: ' + 'N/A' + '</p>' +
-            '<p>On time: ' + '<span class="green-text">Yes (+0min)</span>' + '</p>' +
+            '<p>Servicing: N/A</p>' +
+            '<p>On time: N/A</p>' +
             '<div class="divider"></div>' +
-            '<p>Load: ' + '0/0' + '</p>' +
-            '<p>Trips Completed: ' + '0' + '</p>' +
-            '<p>Trips Remaining: ' + '0' + '</p></div>';
+            '<p>Load: ' + this.currCapacity + '/' + this.maxCapacity + '</p>' +
+            '<p>Trips Remaining: ' + this.assignedTrips.size + '</p></div>';
     }
 
     createLiveVehicle() {
@@ -47,7 +64,7 @@ class LiveVehicle {
                 optimized: true,
             },
             title: 'Vehicle #' + this.name,
-            easing: "easeOutQuad",
+            easing: "linear",
             duration: 30000,
             map: map,
         });
@@ -57,24 +74,45 @@ class LiveVehicle {
             position: this.symbol.getPosition(),
         });
 
-        this.symbol.addListener('click', () => { this.infoBox.open(map); });
+        this.symbol.addListener('click', this.handleClick.bind(this));
+        this.symbol.addListener('mouseover', this.handleMouseOver.bind(this));
+        this.symbol.addListener('mouseout', this.handleMouseOut.bind(this));
     }
 
     //make sure object can get GC'ed
     destroy() {
+        this.symbol.removeListener('click', this.handleClick.bind(this));
+        this.symbol.removeListener('mouseover', this.handleMouseOver.bind(this));
+        this.symbol.removeListener('mouseout', this.handleMouseOut.bind(this));
+
         if (this.animationInterval)
             this.animationInterval = clearInterval(this.animationInterval);
 
         this.symbol = null;
 
         this?.zone.removeVehicle(this);
-        this?.animPath.setMap(null);
+        this?.path.setMap(null);
 
         liveVehicles.delete(this.name);
     }
 
     handleClick() {
-        this.infoBoxRef.open(map);
+        handleVehicleSelect(liveQueueEntries.get(this.name));
+        this.infoBox.open(map);
+    }
+
+    handleMouseOver() {
+        if (activeVehicle.vehicle == this) return;
+
+        this.showTripMarkers();
+        this.showPath();
+    }
+
+    handleMouseOut() {
+        if (activeVehicle.vehicle == this) return;
+
+        this.hideTripMarkers();
+        this.hidePath();
     }
 
     updateMarker(coords = map.getCenter()) {
@@ -92,6 +130,73 @@ class LiveVehicle {
         this.infoBox.setPosition(coords)
     }
 
+    updateInfoBox() {
+        let tempTrip = [...this.assignedTrips.values()].find(trip => { 
+            if (trip.status === 'PICKEDUP' || trip.status === 'IRTPU')
+                return true;
+        });
+
+        if (!tempTrip) return;
+
+        this.infoContent =
+            '<div class="zone-info"><b>Vehicle: ' + this.name + '</b>' +
+            '<div class="divider"></div>' +
+            '<p class="truncate">Servicing: ' + tempTrip.name + '</p>' +
+            '<p>Status: ' + this.#determineIsOnTime(tempTrip) + '</p>' +
+            '<div class="divider"></div>' +
+            '<p>Load: ' + this.currCapacity + '/' + this.maxCapacity + '</p>' +
+            '<p>Trips Remaining: ' + this.assignedTrips.size + '</p></div>';
+
+        this.infoBox.setContent(this.infoContent);
+    }
+
+    createMarkers() {
+        this.assignedTrips.forEach( trip => {
+            if (trip.active)
+                this.tripMarkers.set(trip.confirmation, new LiveMarker(trip));
+        });
+    }
+
+    updateMarkers() {
+        this.assignedTrips.forEach(trip => {
+            if (this.tripMarkers.has(trip.confirmation) && !trip.active) {
+                this.tripMarkers.get(trip.confirmation).destroy();
+                this.tripMarkers.delete(trip.confirmation);
+            }
+            else if (this.tripMarkers.has(trip.confirmation) && trip.active) {
+                if (trip.status == 'PICKEDUP')
+                    this.tripMarkers.get(trip.confirmation).updateToPickedUp();
+            }
+            else if (!this.tripMarkers.has(trip.confirmation) && trip.active)
+                this.tripMarkers.set(trip.confirmation, new LiveMarker(trip));
+        });
+
+        this.tripMarkers.forEach(marker => {
+            if (!this.assignedTrips.has(marker.id)) {
+                this.tripMarkers.delete(marker.id);
+                marker.destory();
+            }
+        });
+    }
+
+    updateVehiclePath() {
+        if (!this.assignedTrips) return;
+
+        let tempPath = [];
+
+        tempPath.push(this.currPos);
+
+        this.assignedTrips.forEach( trip => {
+            if(trip.active) {
+                if (trip.status != 'PICKEDUP')
+                    tempPath.push(trip.PUcoords);
+                tempPath.push(trip.DOcoords);
+            }                
+        });
+
+        this.path.setPath(tempPath);
+    }
+
     rotateMarker(heading=0) {
         if (!this.symbol)
             this.createLiveVehicle();
@@ -102,12 +207,32 @@ class LiveVehicle {
         this.symbol.setIcon(icon);
     }
 
+    showMarker() {
+        this.symbol.setMap(map);
+    }
+
+    showTripMarkers() {
+        this.tripMarkers.forEach(trip => {
+            trip.showMarkers();
+        });
+    }
+
+    showPath() {
+        this.path.setMap(map);
+    }
+
     hideMarker() {
         this.symbol.setMap(null);
     }
 
-    showMarker() {
-        this.symbol.setMap(map);
+    hideTripMarkers() {
+        this.tripMarkers.forEach(trip => {
+            trip.hideMarkers();
+        });
+    }
+
+    hidePath() {
+        this.path.setMap(null);
     }
 
     addTrip(trip) {
@@ -122,8 +247,42 @@ class LiveVehicle {
         this.assignedTrips.delete(trip.confirmation);
     }
 
+    getActiveTripCount() {
+        let count = 0;
+
+        this.assignedTrips.forEach(trip => {
+            if(trip.active)
+                count++;
+        });
+
+        return count;
+    }
+
     clearTrips() {
         this.assignedTrips.clear();
+    }
+
+    focusSelf() {
+        map.setCenter(this.currPos);
+        map.setZoom(15);
+    }
+
+    #determineIsOnTime(trip) {
+        if (!trip) return 'N/A';
+
+        let tempDate = new Date();
+
+        if (trip.status == 'PICKEDUP') {
+            if (tempDate.getTime() > trip.schDODateTime.getTime()) {
+                let diffMin = Math.round((((tempDate - trip.schDODateTime) % 86400000) % 3600000) / 60000);
+
+                return '<span class="red-text">LATE (+' + diffMin + ' min)</span>';
+            }
+            else
+                return '<span class="green-text">ON TIME</span>';
+        }
+        else
+            return '<span class="amber-text">TBD</span>';
     }
 
     calcRotation(startPos, endPos) {

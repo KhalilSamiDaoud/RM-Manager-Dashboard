@@ -1,25 +1,29 @@
-import { fullParse, getMapCenter, trimStreetNames, getClockStartTime, getLiveVehiclesFromJSON, updateLiveVehiclesFromJSON, getZonesFromJSON, getLiveTripsFromJSON } from './parseInput.js';
-import { INIT_MODE, API_COLUMNS_TRIPS, API_COLUMNS_AVL, APIURL, API_FUNCTIONS, INIT_EVENT_TYPE, API_COLUMNS_ZONES, API_COLUMNS_LIVE_TRIPS } from './constants.js';
+import { fullParse, getMapCenter, trimStreetNames, getClockStartTime, getLiveVehiclesFromJSON, getLiveAlertsFromJSON,
+        updateLiveVehiclesFromJSON, getZonesFromJSON, getLiveTripsFromJSON, updateLiveTripsFromJSON } from './parseInput.js';
+import { INIT_MODE, API_COLUMNS_TRIPS, API_COLUMNS_AVL, APIURL, API_FUNCTIONS, API_COLUMNS_ZONES, 
+        API_COLUMNS_LIVE_TRIPS, API_COLUMNS_ALERTS } from './constants.js';
 import { initSimulation, stopSimulation, currMode } from './main.js';
-import { initEvent } from './log.js';
+import { drawMaterial } from './barChart.js';
 
 var zoneCache, vehicleCache, tripListCache;
+
 let tripListObjTrimed, startTime, newCenter;
+let liveVehiclePosInterval, updateAlertsInterval, tripsInterval;
 
-let liveVehiclePosInterval;
+const CURR_DATE = new Date().toLocaleDateString();
 
-async function initAPI(date = '12/1/2021') {
+async function initAPI(date = CURR_DATE) {
     await fetch(APIURL + API_FUNCTIONS.getFutureTrips + date)
         .then(response => response.json())
         .then(data => {
             if (data.triplist.length == 0) {
-                initEvent(INIT_EVENT_TYPE.APIempty);
+                //initEvent(INIT_EVENT_TYPE.APIempty);
                 throw new Error('DASHBOARD-API Initialization Error: No Data');
             }
 
             tripListObjTrimed = trimStreetNames(data.triplist, API_COLUMNS_TRIPS);
-            startTime         = getClockStartTime(tripListObjTrimed, API_COLUMNS_TRIPS);
-            newCenter         = getMapCenter(tripListObjTrimed, API_COLUMNS_TRIPS);
+            startTime = getClockStartTime(tripListObjTrimed, API_COLUMNS_TRIPS);
+            newCenter = getMapCenter(tripListObjTrimed, API_COLUMNS_TRIPS);
 
             stopSimulation();
             fullParse(tripListObjTrimed, API_COLUMNS);
@@ -32,7 +36,7 @@ async function initLive() {
         .then(response => response.json())
         .then(data => {
             if (data.zones.length == 0) {
-                initEvent(INIT_EVENT_TYPE.AVLempty);
+                //initEvent(INIT_EVENT_TYPE.AVLempty);
                 throw new Error('DASHBOARD-API Initialization Error: No Zone Data');
             }
 
@@ -45,18 +49,18 @@ async function initLive() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.avl.length == 0) {
-                        initEvent(INIT_EVENT_TYPE.AVLempty);
+                        //initEvent(INIT_EVENT_TYPE.AVLempty);
                         throw new Error('DASHBOARD-API Initialization Error: No Vehicle Data');
                     }
 
                     vehicleCache = data.avl;
                     getLiveVehiclesFromJSON(data.avl, API_COLUMNS_AVL);
 
-                    fetch(APIURL + API_FUNCTIONS.getTodayTrips)
+                    fetch(APIURL + API_FUNCTIONS.getTodayTrips + '?date=12/14/2021')
                         .then(response => response.json())
                         .then(data => {
                             if (data.triplist.length == 0) {
-                                initEvent(INIT_EVENT_TYPE.APIempty);
+                                //initEvent(INIT_EVENT_TYPE.APIempty);
                                 throw new Error('DASHBOARD-API Initialization Error: No Trip Data');
                             }
 
@@ -64,7 +68,11 @@ async function initLive() {
                             
                             getLiveTripsFromJSON(tripListCache, API_COLUMNS_LIVE_TRIPS);
                             initSimulation(INIT_MODE.live);
+
                             autoUpdateVehiclePositions();
+                            autoUpdateAlerts();
+                            autoUpdateTrips();
+                            drawMaterial();
                         });
                 });
         });
@@ -75,7 +83,7 @@ function autoUpdateVehiclePositions() {
 
     liveVehiclePosInterval = setInterval(async () => {
         if(currMode != INIT_MODE.live) {
-            vehiclePosInterval = clearInterval(liveVehiclePosInterval);
+            liveVehiclePosInterval = clearInterval(liveVehiclePosInterval);
             return;
         }
 
@@ -83,7 +91,7 @@ function autoUpdateVehiclePositions() {
             .then(response => response.json())
             .then(data => {
                 if (data.avl.length == 0) {
-                    console.warn('No trip data received on update.');
+                    console.warn('No vehicle data received on update.');
                     return;
                 }
 
@@ -91,6 +99,52 @@ function autoUpdateVehiclePositions() {
                 updateLiveVehiclesFromJSON(data.avl, API_COLUMNS_AVL);
             });
     }, 30000);
+}
+
+function autoUpdateTrips() {
+    if (tripsInterval) return;
+
+    tripsInterval = setInterval(async () => {
+        if (currMode != INIT_MODE.live) {
+            tripsInterval = clearInterval(tripsInterval);
+            return;
+        }
+
+        await fetch(APIURL + API_FUNCTIONS.getTodayTrips)
+            .then(response => response.json())
+            .then(data => {
+                if (data.triplist.length == 0) {
+                    console.warn('No trip data received on update.');
+                    return;
+                }
+
+                tripListCache = trimStreetNames(data.triplist, API_COLUMNS_LIVE_TRIPS);
+
+                updateLiveTripsFromJSON(tripListCache, API_COLUMNS_LIVE_TRIPS);
+            });
+    }, 30000);
+}
+
+function autoUpdateAlerts() {
+    if (updateAlertsInterval) return;
+
+    updateAlertsInterval = setInterval(async () => {
+        if (currMode != INIT_MODE.live) {
+            updateAlertsInterval = clearInterval(updateAlertsInterval);
+            return;
+        }
+
+        await fetch(APIURL + API_FUNCTIONS.getAlerts)
+            .then(response => response.json())
+            .then(data => {
+                if (data.Alerts.length == 0) {
+                    //no warning, its normal to not receive any new alerts. 
+                    return;
+                }
+
+                getLiveAlertsFromJSON(data.Alerts, API_COLUMNS_ALERTS);
+            });
+    }, 61000);
 }
 
 export { initAPI, initLive };
