@@ -30,10 +30,10 @@ class Zone {
 
         this.elem = new google.maps.Polygon({
             paths: this.path,
-            strokeColor: this.color.hex,
+            strokeColor: this.color,
             strokeOpacity: 0.33,
             strokeWeight: 1,
-            fillColor: this.color.hex,
+            fillColor: this.color,
             fillOpacity: 0.1
         });
 

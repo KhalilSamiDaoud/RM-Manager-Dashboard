@@ -3,6 +3,7 @@ import { VEHICLE_TYPE, DLINE_SYMBOL } from './constants.js';
 import { liveVehicles } from './vehicleList.js';
 import { LiveMarker } from './liveMarker.js';
 import { zones } from './zoneList.js';
+import { isColor } from './utils.js';
 import { map } from './map.js';
 
 class LiveVehicle {
@@ -24,7 +25,7 @@ class LiveVehicle {
         //ID by confirmation num
         this.tripMarkers = new Map();
 
-        this.color = (color) ? color : 'black';
+        this.color = (isColor(color?.toLowerCase())) ? color?.toLowerCase() : 'black';
 
         this.path = new google.maps.Polyline({
             path: [this.currPos],
@@ -58,7 +59,7 @@ class LiveVehicle {
                 fillColor: this.color,
                 fillOpacity: 1,
                 scale: .23,
-                anchor: new google.maps.Point(50, 0),
+                anchor: new google.maps.Point(50, 50),
                 fixedRotation: false,
                 rotation: this.heading,
                 optimized: true,
@@ -71,7 +72,7 @@ class LiveVehicle {
 
         this.infoBox = new google.maps.InfoWindow({
             content: this.infoContent,
-            position: this.symbol.getPosition(),
+            position: this.symbol.getPosition()
         });
 
         this.symbol.addListener('click', this.handleClick.bind(this));
@@ -115,6 +116,12 @@ class LiveVehicle {
         this.hidePath();
     }
 
+    updateLoad(load) {
+        if (typeof(load) !== 'number') return;
+
+        this.currCapacity = load;
+    }
+
     updateMarker(coords = map.getCenter()) {
         if (JSON.stringify(coords) === JSON.stringify(this.currPos))
             return;
@@ -131,18 +138,21 @@ class LiveVehicle {
     }
 
     updateInfoBox() {
+        if (!this.infoBox) {
+            console.warn(this.name + ' Info Box is not defined'); 
+            return;
+        }
+
         let tempTrip = [...this.assignedTrips.values()].find(trip => { 
             if (trip.status === 'PICKEDUP' || trip.status === 'IRTPU')
                 return true;
         });
 
-        if (!tempTrip) return;
-
         this.infoContent =
             '<div class="zone-info"><b>Vehicle: ' + this.name + '</b>' +
             '<div class="divider"></div>' +
-            '<p class="truncate">Servicing: ' + tempTrip.name + '</p>' +
-            '<p>Status: ' + this.#determineIsOnTime(tempTrip) + '</p>' +
+            '<p class="truncate">Servicing: ' + ((tempTrip) ? tempTrip.name : 'N/A') + '</p>' +
+            '<p>Status: ' + ((tempTrip) ? this.#determineIsOnTime(tempTrip) : 'N/A') + '</p>' +
             '<div class="divider"></div>' +
             '<p>Load: ' + this.currCapacity + '/' + this.maxCapacity + '</p>' +
             '<p>Trips Remaining: ' + this.assignedTrips.size + '</p></div>';
@@ -174,7 +184,7 @@ class LiveVehicle {
         this.tripMarkers.forEach(marker => {
             if (!this.assignedTrips.has(marker.id)) {
                 this.tripMarkers.delete(marker.id);
-                marker.destory();
+                marker.destroy();
             }
         });
     }
@@ -267,6 +277,11 @@ class LiveVehicle {
         map.setZoom(15);
     }
 
+    calcRotation(startPos, endPos) {
+        if (startPos && endPos)
+            return google.maps.geometry.spherical.computeHeading(startPos, endPos);
+    }
+
     #determineIsOnTime(trip) {
         if (!trip) return 'N/A';
 
@@ -283,11 +298,6 @@ class LiveVehicle {
         }
         else
             return '<span class="amber-text">TBD</span>';
-    }
-
-    calcRotation(startPos, endPos) {
-        if (startPos && endPos)
-            return google.maps.geometry.spherical.computeHeading(startPos, endPos);
     }
 }
 

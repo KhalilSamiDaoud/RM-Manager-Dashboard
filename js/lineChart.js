@@ -1,5 +1,5 @@
 import { COLORS } from './constants.js';
-import { parseTime } from './parseInput.js';
+import { parseTime } from './utils.js';
 
 class lineChart {
     constructor(file = null, chartID = 'body') {
@@ -18,7 +18,7 @@ class lineChart {
         this.options;
         this.data;
 
-        this.findPeaks();
+        this.#findPeaks();
     }
 
     drawMaterial() {
@@ -91,11 +91,7 @@ class lineChart {
         let dataMap = new Map();
         let offset = 0;
 
-        let currRecord;
-        let currRecordType;
-        let currVeh;
-        let currVehIndx;
-        let currTime;
+        let currRecord, currRecordType, currVeh, currVehIndx, currTime;
 
         for (const vehicle in this.vehicles) {
             currVeh = vehicle;
@@ -112,7 +108,7 @@ class lineChart {
                         dataMap.get(currTime[0])[currVehIndx] += (currRecordType == 'PU') ? 1 : -1;
                     }
                     else {
-                        dataMap.set(currTime[0], this.createMapEntry(currTime[1]));
+                        dataMap.set(currTime[0], this.#createMapEntry(currTime[1]));
                         dataMap.get(currTime[0])[currVehIndx] += (currRecordType == 'PU') ? 1 : -1;
                     }
                 }
@@ -122,10 +118,10 @@ class lineChart {
         }
 
         dataMap = new Map([...dataMap.entries()].sort((e1, e2) => e1[0] - e2[0]));
-        return this.map2CompiledArray(dataMap);
+        return this.#map2CompiledArray(dataMap);
     }
 
-    createMapEntry(timeArr) {
+    #createMapEntry(timeArr) {
         let mapEntry = [timeArr];
 
         for (let i = 0; i < Object.keys(this.vehicles).length; i++) {
@@ -135,7 +131,7 @@ class lineChart {
         return mapEntry;
     }
 
-    map2CompiledArray(map) {
+    #map2CompiledArray(map) {
         let compiledData = [];
         let prevValue;
 
@@ -152,7 +148,7 @@ class lineChart {
         return compiledData;
     }
 
-    findPeaks() {
+    #findPeaks() {
         let currPeak;
         let peaks = [];
 

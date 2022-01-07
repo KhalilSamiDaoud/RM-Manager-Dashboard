@@ -218,11 +218,11 @@ class thread2:
 
     class Alerts:
         def __init__(self):
-            self.compiled_data = []
-            self.response = ""
             self.conn = pyodbc.connect(constants.DB_CONNECT_CRED)
 
         def get_alerts(self, date, time):
+            self.compiled_data = []
+            self.response = ""
             self.one_minute = timedelta(minutes = 1)
             self.minus_minute = time - self.one_minute
             self.oldtime = self.minus_minute.time()

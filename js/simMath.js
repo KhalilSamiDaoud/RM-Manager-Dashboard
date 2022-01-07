@@ -1,5 +1,5 @@
 import { SIM_AREA, COLORS } from './constants.js';
-import { parseTime } from './parseInput.js';
+import { parseTime } from './utils.js';
 
 let sumTime, sumPass, sumTrips, sumRevn;
 sumTime = sumPass = sumTrips = sumRevn = 0;

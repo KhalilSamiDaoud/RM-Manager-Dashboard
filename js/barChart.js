@@ -8,7 +8,7 @@ window.onresize = drawMaterial;
 
 let barChart = null;
 let options;
-let data;
+let data; 
 
 function drawMaterial() {
     let vehicleMax = 0;
@@ -18,11 +18,15 @@ function drawMaterial() {
         vehicleInfo = [['Vehicle ID', 'Passengers', { type: 'string', role: 'style' }, { role: 'annotation' }]];
 
         [...liveVehicles.values()].every(vehicle => {
-            if (!vehicle.assignedTrips.size) return true;
+            if (vehicle.currCapacity == 0) return true;
 
-            vehicleInfo.push([vehicle.name, vehicle.currCapacity, 'color: ' + vehicle.color, vehicle.type.name]);
+            vehicleInfo.push(['#' + vehicle.name, vehicle.currCapacity, 
+                'color: ' + ((vehicle.color == 'white') ? vehicle.color + '; stroke-color: #000000;' : vehicle.color), 
+                vehicle.type.name + (' (' + vehicle.currCapacity + '/' + vehicle.maxCapacity + ')')]);
             
             vehicleMax = (vehicleMax < vehicle.maxCapacity) ? vehicle.maxCapacity : vehicleMax;
+
+            return true;
         });
     }
     else {
@@ -60,9 +64,9 @@ function drawMaterial() {
                 min: 0
             }
         },
-        height: '100%',
+        height: (150 + (15 * vehicleInfo.length)),
         width: '100%',
-        title: "Passenger Load per Vehicle",
+        title: "Live Passenger Load per Vehicle",
         bar: { groupWidth: "85%" },
         legend: { position: "none" },
         isStacked: true

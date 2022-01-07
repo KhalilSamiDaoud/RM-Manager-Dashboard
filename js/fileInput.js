@@ -126,7 +126,7 @@ function processExcel(data) {
   });
 
   firstSheet = workbook.SheetNames[0];
-  data = to_json(workbook);
+  data = WBtoJSON(workbook);
   return data;
 }
 
@@ -149,7 +149,7 @@ async function processAndFormatExcel(data) {
       });
 
       tempFirstSheet = workbook.SheetNames[0];
-      tempContents = JSON.parse(to_json(workbook));
+      tempContents = JSON.parse(WBtoJSON(workbook));
       tempColIndxs = findColIndex(tempContents[tempFirstSheet]);
       tempTrimmedList = trimStreetNames(tempContents[tempFirstSheet].slice(1), tempColIndxs);
       tempVehIndxs = findVehicleIndex(tempTrimmedList, tempColIndxs);
@@ -165,7 +165,7 @@ async function processAndFormatExcel(data) {
   ];
 }
 
-function to_json(workbook) {
+function WBtoJSON(workbook) {
   let result = {};
   workbook.SheetNames.forEach(function (sheetName) {
     let roa = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {

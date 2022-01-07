@@ -228,6 +228,11 @@ function initMap(area) {
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(trafficControlDiv);
 }
 
+function resetMapCenter() {
+    map.setCenter(mapCenter);
+    map.setZoom(11);
+}
+
 function createVehicleIcon(vehicle) {
     let busSymbol = {
         path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
@@ -461,4 +466,4 @@ function trafficControl(controlDiv) {
     });
 }
 
-export { initMap, checkMapResize, drawTripPath, drawNextIcon, drawNextNIcons, drawStaticIcons, createVehicleIcon, map, mapCenter };
+export { initMap, checkMapResize, drawTripPath, drawNextIcon, drawNextNIcons, drawStaticIcons, createVehicleIcon, resetMapCenter, map, mapCenter };

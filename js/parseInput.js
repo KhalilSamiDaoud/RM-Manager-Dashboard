@@ -1,11 +1,11 @@
 import { vehicles, liveVehicles, createVehicle, createLiveVehicle, clearVehicles, sortVehicleList, updateVehicleInformation } from './vehicleList.js';
+import { timer, parseTime } from './utils.js';
 import { calcWaitTime } from './simMath.js';
 import { createZone } from './zoneList.js';
 import { TRIP_TYPE } from './constants.js';
 import { addAPIEvent } from './liveLog.js';
-import { Trip } from './trip.js';
 
-const timer = ms => new Promise(res => setTimeout(res, ms));
+import { Trip } from './trip.js';
 
 const CURR_DATE = new Date();
 const CURR_DATE_STRING = new Date().toLocaleDateString();
@@ -55,45 +55,6 @@ function fullParse(records, fileColumns) {
     getVehiclesFromJSON(records, fileColumns);
     getFixedStopsFromJSON(records, fileColumns);
     getQueueFromJSON(records, fileColumns);
-}
-
-// mode 0 = time array [hr,min,sec]
-// mode 1 = minutes representation
-// mode 2 = both [minutes, [hr,min,sec]]
-function parseTime(timeString, mode = 1) {
-    let UDTfix = (timeString.length > 11) ? true : false;
-    let hms, minutes;
-
-    if (UDTfix)
-        timeString = new Date(timeString).toLocaleTimeString();
-
-    hms = timeString.substring(0, 11).split(/:| /);
-
-    switch (mode) {
-        case 0:
-            return hms;
-        case 1:
-        case 2:
-            minutes = (+hms[0]) * 60 + (+hms[1]) + (+hms[2] / 60);
-
-            if (hms[hms.length - 1] == 'PM')
-                minutes = (+hms[0] != 12) ? minutes + 720 : minutes;
-            else if (hms[hms.length - 1] == 'AM')
-                minutes = (+hms[0] != 12) ? minutes : minutes - 720;
-
-            if (mode == 1)
-                return minutes;
-            else {
-                if ((hms[hms.length - 1] == 'AM' && +hms[0] == 12))
-                    return [minutes, [(+hms[0] - 12), +hms[1], +hms[2]]];
-                if ((hms[hms.length - 1] == 'PM' && +hms[0] != 12))
-                    return [minutes, [(+hms[0] + 12), +hms[1], +hms[2]]];
-
-                return [minutes, [+hms[0], +hms[1], +hms[2]]];
-            }
-        default:
-            throw new Error('invalid mode (' + mode + ')');
-    }
 }
 
 function getTripType(record, fileColumns) {
@@ -185,18 +146,17 @@ function getLiveAlertsFromJSON(records, fileColumns) {
 }
 
 function updateLiveTripsFromJSON(records, fileColumns) {
+    liveVehicles.forEach(vehicle => {
+        vehicle.clearTrips();
+    });
+
     for (let i = 0; i < records.length; i++) {
         if (records[i][fileColumns.vehID] == -1 || records[i][fileColumns.vehID] == 0)
             continue;
 
         if (liveVehicles.has(records[i][fileColumns.vehID])) {
             if(new Date(records[i][fileColumns.scheduledPUTime]).toLocaleDateString() === CURR_DATE_STRING) {
-                if (liveVehicles.get(records[i][fileColumns.vehID]).assignedTrips.has(records[i][fileColumns.confirmationNum])) {
-                    liveVehicles.get(records[i][fileColumns.vehID]).assignedTrips.get(records[i][fileColumns.confirmationNum]).constructLiveTrip(records[i]);
-                }
-                else {
-                    liveVehicles.get(records[i][fileColumns.vehID]).addTrip(new Trip({ liveRecord: records[i] }));
-                }
+                liveVehicles.get(records[i][fileColumns.vehID]).addTrip(new Trip({ liveRecord: records[i] }));
             }
         }
     }
@@ -206,6 +166,7 @@ function updateLiveTripsFromJSON(records, fileColumns) {
 
 //this function limits the amount of vehicle updates /w throttle timer
 async function updateLiveVehiclesFromJSON(records, fileColumns) {
+    let vehicleRef;
     // let throttleCap = (records.length > 10) ? Math.ceil(records.length / 4) : records.length;
     // let throttleCount = 0;
 
@@ -215,8 +176,11 @@ async function updateLiveVehiclesFromJSON(records, fileColumns) {
     //         throttleCount = 0;
     //         await timer(3000);
     //     }
-        if (liveVehicles.has(records[i][fileColumns.vehID]))
-            liveVehicles.get(records[i][fileColumns.vehID]).updateMarker({ lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
+        if (liveVehicles.has(records[i][fileColumns.vehID])) {
+            vehicleRef = liveVehicles.get(records[i][fileColumns.vehID]);
+            vehicleRef.updateLoad(records[i][fileColumns.vehLoad]);
+            vehicleRef.updateMarker({ lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
+        }
         else
             createLiveVehicle(records[i][fileColumns.vehID], records[i][fileColumns.vehCapacity], records[i][fileColumns.vehLoad], { lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
     }

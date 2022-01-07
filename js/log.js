@@ -1,6 +1,6 @@
 import { TRIP_TYPE, WINDOW_TYPE, EVENT_SEVERITY } from './constants.js';
 import { createPopWindow, removePopWindow } from './popWindowList.js';
-import { timeToString } from './clock.js';
+import { timeToString } from './utils.js';
 import { checkMapResize } from './map.js';
 
 document.getElementById('clearlog').addEventListener('click', clearEvents);

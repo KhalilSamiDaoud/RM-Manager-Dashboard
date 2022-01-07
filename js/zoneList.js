@@ -1,5 +1,6 @@
-import { Zone } from "./zone.js";
 import { queueWin } from './liveQueue.js';
+import { rgbToHex } from './utils.js'
+import { Zone } from "./zone.js";
 
 const ZONE_SELECT = document.getElementById('zone_select');
 
@@ -64,21 +65,6 @@ function handleZoneFilterSelect() {
         selectedZones.forEach(zone => {
             zones.get(zone).showAllVehicles();
         });
-    }
-}
-
-function rgbToHex(rgbString) {
-    try {
-        let rbgRegex = /rgb\((\d{1,3}), (\d{1,3}), (\d{1,3})\)/;
-        let colors = rbgRegex.exec(rgbString);
-
-        return  (colors) ? 
-            '#' + ((1 << 24) + (~colors[0] << 16) + (~colors[1] << 8) + ~colors[2]).toString(16) :
-        (() => { throw new Error('ERROR: invalid RBG string'); });
-    }
-    catch (err) {
-        console.error(err);
-        return '#000';
     }
 }
 

@@ -1,3 +1,5 @@
+//make sure configuration files are the first things to load!
+import './configuration.js';
 import { INIT_COORDS, INIT_MODE, LIVE_NOTIF, SIM_NOTIF, LOG_ENTRY_TYPES } from './constants.js';
 import { initClock, startSYSClock, startSIMClock } from './clock.js';
 import { initMap, createVehicleIcon, drawStaticIcons } from './map.js';

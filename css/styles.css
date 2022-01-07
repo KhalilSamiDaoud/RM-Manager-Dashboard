@@ -938,3 +938,7 @@ div#modalfare {
 .no-scroll {
   overflow-y: hidden !important;
 }
+
+.pointer-cursor {
+  cursor: pointer !important;
+}

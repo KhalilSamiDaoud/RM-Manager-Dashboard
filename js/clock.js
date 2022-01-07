@@ -1,6 +1,7 @@
 import { stopSimulation, currMode } from './main.js';
 import { vehicles } from './vehicleList.js';
 import { INIT_MODE } from './constants.js';
+import { timeToString } from './utils.js';
 
 document.getElementById('normalspeed').addEventListener('click', setSpeedNormal);
 document.getElementById('fastspeed').addEventListener('click', setSpeedFast);
@@ -17,15 +18,17 @@ clockStartTime = clockCurrTime = 0;
 
 function initClock(startTime = 0) {
     if (currMode == INIT_MODE.live) {
-        clockCurrTime = clockStartTime = startTime;
-
-        clock.innerHTML = timeToString(clockStartTime);
+        startSYSClock()
 
         btnNormal.style.display = 'none';
         btnFast.style.display = 'none';
     }
     else {
-        setClock();
+        clockCurrTime = clockStartTime = startTime;
+        clock.innerHTML = timeToString(clockStartTime);
+
+        startSIMClock();
+
         btnNormal.style.display = 'block';
         btnFast.style.display = 'block';
     }
@@ -38,6 +41,8 @@ function startSIMClock() {
 }
 
 function startSYSClock() {
+    setClock();
+
     clockInterval = window.setInterval(() => {
         setClock();
     }, (15000));
@@ -65,23 +70,6 @@ function setClock() {
 
 function clearClock() {
     initClock(1440);
-}
-
-function timeToString(time = clockCurrTime, round = true) {
-    if (round)
-        time = ((time % 1) > 0.5) ? Math.ceil(time) : Math.floor(time);
-
-    let hours = Math.floor(time / 60);
-    let minutes = time % 60;
-
-    if (hours < 12)
-        return (hours == 0) ? ('00' + hours + 12).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' AM' :
-            ('00' + hours).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' AM';
-    else if (hours == 12)
-        return ('00' + 12).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' PM';
-    else
-        return (hours == 24) ? ('00' + (hours - 12)).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' AM' :
-            ('00' + (hours - 12)).slice(-2) + ':' + ('00' + minutes).slice(-2) + ' PM';
 }
 
 function updateSimSpeed() {

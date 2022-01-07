@@ -35,14 +35,6 @@ function addAPIEvent(message, details, dateTime, affiliateID, type, icon) {
     autoScroll();
 }
 
-function addStatusEvent(type, message=null) {
-    let tempEvent = new StatusEntry(type, message);
-
-    liveLogEntries.push(tempEvent);
-    LOG_LIST.appendChild(tempEvent.elem);
-    autoScroll();
-}
-
 function clearEvents() {
     while (LOG_LIST.firstChild) {
         LOG_LIST.removeChild(LOG_LIST.firstChild);

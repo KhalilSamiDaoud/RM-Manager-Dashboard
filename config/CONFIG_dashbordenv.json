@@ -1,0 +1,6 @@
+{
+    "enviorment" : {
+        "mapCenter" : { "lat": 39.016388, "lng": -77.034983 },
+        "APIURL" : "https://easterndashboardapi.itcurves.us/"
+    }
+}

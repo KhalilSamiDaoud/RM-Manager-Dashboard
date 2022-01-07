@@ -1,3 +1,4 @@
+import { resetMapCenter } from './map.js';
 import { zones } from './zoneList.js';
 import { Trip } from './trip.js';
 
@@ -5,7 +6,7 @@ import { Trip } from './trip.js';
 var liveQueueEntries = new Map();
 var queueWin = document;
 
-var activeVehicle;
+var activeVehicle, activeTripsList;
 
 const QUEUE_LISTS = queueWin.getElementById('lists');
 const VEHICLE_LIST = queueWin.getElementById('vehicle_list');
@@ -17,7 +18,8 @@ const VEHICLE_LIST_ENTRY_TYPE = {
     zone: 1,
     divider: 2,
     search: 3,
-    none: 4,
+    general: 4,
+    none: 5,
 }
 
 const PU_STATUS = {
@@ -38,14 +40,9 @@ function initLiveQueue() {
 
     createLiveQueueEntries();
 
-    for (const entry of liveQueueEntries.values()) {
-        if (entry?.vehicle) {
-            updateVehicleDropdown(entry);
-            entry.toggleTripListVisibility();
-            activeVehicle = entry;
-            break;
-        }
-    }
+    updateVehicleDropdown(activeTripsList);
+    activeTripsList.toggleTripListVisibility();
+    activeVehicle = activeTripsList;
 }
 
 function handleVehicleSelect(vehicleEntry) {
@@ -71,7 +68,7 @@ function handleVehicleSearch(evt) {
     let entries = [...liveQueueEntries.values()];
 
     for (let i=0; i < entries.length; i++) {
-        if (entries[i].type != VEHICLE_LIST_ENTRY_TYPE.divider) {
+        if (entries[i].type == VEHICLE_LIST_ENTRY_TYPE.vehicle || entries[i].type == VEHICLE_LIST_ENTRY_TYPE.zone) {
             if (!entries[i].ID.includes(filterString)) {
                 entries[i].elem.classList.add('showable');
 
@@ -105,6 +102,9 @@ function resetVehicleSearch() {
 }
 
 function createLiveQueueEntries() {
+    activeTripsList = new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.general);
+    liveQueueEntries.set('general', activeTripsList);
+
     zones.forEach(zone => {
         if (zone.name != 'NONE' && zone.vehiclesInZone.size) {
             liveQueueEntries.set(zone.name, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.zone, zone));
@@ -127,6 +127,8 @@ function createLiveQueueEntries() {
     noneZone.vehiclesInZone.forEach(vehicle => {
         liveQueueEntries.set(vehicle.name, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.vehicle, vehicle));
     });
+
+    updateActiveTripsList();
 }
 
 function clearLiveQueueEntries() {
@@ -140,12 +142,12 @@ function clearLiveQueueEntries() {
 function updateVehicleDropdown(vehicleEntry) {
     if (!vehicleEntry?.fullyInit) return;
 
-    if(vehicleEntry.type == VEHICLE_LIST_ENTRY_TYPE.search) {
+    if(vehicleEntry.type != VEHICLE_LIST_ENTRY_TYPE.vehicle) {
         let newIcon = vehicleEntry.elem.firstChild.children[0].cloneNode(true);
         newIcon.style.margin = '10px';
 
         VEHICLE_DROPDOWN.replaceChild(newIcon, VEHICLE_DROPDOWN.children[0]);
-        VEHICLE_DROPDOWN.children[1].innerText = 'Search Results';
+        VEHICLE_DROPDOWN.children[1].innerText = (vehicleEntry.type == VEHICLE_LIST_ENTRY_TYPE.general) ? 'Active Trips' : 'Search Results';
     }
     else {
         let newIcon = vehicleEntry.elem.firstChild.children[1].cloneNode(true);
@@ -162,7 +164,34 @@ function updateVehicleTripLists() {
             entry.populateTripList();
             entry.updateTripCount();
         }
-    })
+    });
+
+    updateActiveTripsList();
+}
+
+function updateActiveTripsList() {
+    activeTripsList.clearTripList();
+    let tempElem;
+
+    liveQueueEntries.forEach(entry => {
+        if (entry.type == VEHICLE_LIST_ENTRY_TYPE.vehicle) {
+            entry.tripList.forEach(tripEntry => {
+                if(tripEntry.pickedUpStatus != PU_STATUS.none) {
+                    tempElem = tripEntry.elem.cloneNode(true);
+                    tempElem.classList.add('pointer-cursor');
+                    tempElem.addEventListener('click', () => { handleVehicleSelect(tripEntry.parent)});
+
+                    activeTripsList.tripList.set(tripEntry.trip.confirmation, tripEntry);
+                    activeTripsList.tripsElem.appendChild(tempElem);
+                }
+            });
+        }
+    });
+
+    if(activeTripsList.tripsElem.childNodes.length == 0)
+        activeTripsList.createEmptyList();
+
+    $('.tooltipped').tooltip();
 }
 
 function isQueuePoped() {
@@ -371,6 +400,7 @@ class VehicleListEntry {
                 this.ID = refObj.name;
                 break;
             case VEHICLE_LIST_ENTRY_TYPE.search:
+            case VEHICLE_LIST_ENTRY_TYPE.general:
                 this.tripList = new Map();
                 break;
             default:
@@ -411,11 +441,8 @@ class VehicleListEntry {
                 vehicleIcon.style.color = this.vehicle.color;
                 vehicleIcon.innerText = this.vehicle.type.icon;
 
-                if (!this.vehicle.color.localeCompare('white', undefined, { sensitivity: 'base' }) || 
-                    !this.vehicle.color.localeCompare('gray', undefined, { sensitivity: 'base' })) {
+                if (this.vehicle.color === 'white' || this.vehicle.color === 'grey' || this.vehicle.color === 'gray')
                     vehicleIcon.style.webkitTextStroke = '1px black';
-                }
-
 
                 this.passengerCache = this.vehicle.getActiveTripCount();
 
@@ -434,12 +461,15 @@ class VehicleListEntry {
                 this.elem.appendChild(zoneElem);
                 break;
             case VEHICLE_LIST_ENTRY_TYPE.search:
+            case VEHICLE_LIST_ENTRY_TYPE.general:
+                let isGeneral = (this.type == VEHICLE_LIST_ENTRY_TYPE.general);
+
                 let listElem = queueWin.createElement('a');
-                listElem.innerText = 'Search Results';
+                listElem.innerText = (isGeneral) ? 'Active Trips' : 'Search Results';
 
                 let listIcon = queueWin.createElement('i');
                 listIcon.setAttribute('class', 'material-icons left');
-                listIcon.style.color = 'white';
+                listIcon.style.color = (isGeneral) ? '' : 'white';
                 listIcon.innerText = 'format_list_bulleted';
 
                 listElem.appendChild(listIcon);
@@ -449,6 +479,12 @@ class VehicleListEntry {
                 QUEUE_LISTS.appendChild(this.tripsElem);
 
                 this.fullyInit = true;
+
+                if(isGeneral) {
+                    this.elem.addEventListener('click', () => { handleVehicleSelect(this); resetMapCenter(); });
+                    VEHICLE_LIST.appendChild(this.elem);
+                }
+
                 return;
             case VEHICLE_LIST_ENTRY_TYPE.divider:
                 this.elem.classList.add('divider');
@@ -529,11 +565,14 @@ class VehicleListEntry {
     }
 
     clearTripList() {
+        if(this.type == VEHICLE_LIST_ENTRY_TYPE.zone || this.type == VEHICLE_LIST_ENTRY_TYPE.divider)
+            return;
+            
         while (this.tripsElem.firstChild) {
             this.tripsElem.removeChild(this.tripsElem.firstChild);
         }
 
-        if(this.type == VEHICLE_LIST_ENTRY_TYPE.vehicle)
+        if(this.type != VEHICLE_LIST_ENTRY_TYPE.search)
             this.tripList?.forEach(trip => {
                 trip.destroy();
             });
@@ -600,11 +639,16 @@ const searchList = new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.search, null);
 
 function handleTripSearchApply() {
     searchList.clearTripList();
-
     handleTextSearch();
     
+    let tempElem;
+
     searchList.tripList.forEach(trip => {
-        searchList.tripsElem.appendChild(trip.elem.cloneNode(true));
+        tempElem = trip.elem.cloneNode(true);
+        tempElem.classList.add('pointer-cursor');
+        tempElem.addEventListener('click', () => { handleVehicleSelect(trip.parent); });
+
+        searchList.tripsElem.appendChild(tempElem);
     });
 
     if(searchList.tripsElem.childNodes.length == 0)

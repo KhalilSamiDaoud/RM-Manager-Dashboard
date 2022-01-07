@@ -1,3 +1,5 @@
+import { globalConfigVars } from './configuration.js';
+
 //===========================================
 //  JS ENUMS
 //===========================================
@@ -156,7 +158,7 @@ const API_COLUMNS_ALERTS = Object.freeze({
     affiliateID: 3
 });
 
-const APIURL = 'https://easterndashboardapi.itcurves.us/';
+const APIURL = globalConfigVars.enviorment.APIURL;
 
 const API_FUNCTIONS = Object.freeze({
     getTodayTrips: 'get-today-trips',
@@ -184,8 +186,7 @@ const TEST_ID_LETTERS = 'ABCD';
 
 const INIT_COORDS =
     [
-        { lat: 38.902183, lng: -77.036842 },
-        { lat: 34.051226, lng: -118.243546 }
+        globalConfigVars.enviorment.mapCenter
     ];
 
 const TEST_STOPS = [

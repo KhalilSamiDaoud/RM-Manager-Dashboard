@@ -8,7 +8,7 @@ import { drawMaterial } from './barChart.js';
 var zoneCache, vehicleCache, tripListCache;
 
 let tripListObjTrimed, startTime, newCenter;
-let liveVehiclePosInterval, updateAlertsInterval, tripsInterval;
+let liveVehiclePosInterval, updateAlertsInterval
 
 const CURR_DATE = new Date().toLocaleDateString();
 
@@ -69,16 +69,15 @@ async function initLive() {
                             getLiveTripsFromJSON(tripListCache, API_COLUMNS_LIVE_TRIPS);
                             initSimulation(INIT_MODE.live);
 
-                            autoUpdateVehiclePositions();
+                            autoUpdateVehicles()
                             autoUpdateAlerts();
-                            autoUpdateTrips();
                             drawMaterial();
                         });
                 });
         });
 }
 
-function autoUpdateVehiclePositions() {
+function autoUpdateVehicles() {
     if (liveVehiclePosInterval) return;
 
     liveVehiclePosInterval = setInterval(async () => {
@@ -98,18 +97,6 @@ function autoUpdateVehiclePositions() {
                 vehicleCache = data.avl;
                 updateLiveVehiclesFromJSON(data.avl, API_COLUMNS_AVL);
             });
-    }, 30000);
-}
-
-function autoUpdateTrips() {
-    if (tripsInterval) return;
-
-    tripsInterval = setInterval(async () => {
-        if (currMode != INIT_MODE.live) {
-            tripsInterval = clearInterval(tripsInterval);
-            return;
-        }
-
         await fetch(APIURL + API_FUNCTIONS.getTodayTrips)
             .then(response => response.json())
             .then(data => {
@@ -119,9 +106,10 @@ function autoUpdateTrips() {
                 }
 
                 tripListCache = trimStreetNames(data.triplist, API_COLUMNS_LIVE_TRIPS);
-
                 updateLiveTripsFromJSON(tripListCache, API_COLUMNS_LIVE_TRIPS);
             });
+
+        drawMaterial();
     }, 30000);
 }
 
