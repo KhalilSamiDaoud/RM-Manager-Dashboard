@@ -80,4 +80,14 @@ function parseTime(timeString, mode = 1) {
     }
 }
 
-export { isColor, rgbToHex, timeToString, timer, parseTime };
+function* IDgenerator(IDprefix = null) {
+    let ID = 0;
+
+    while (true) {
+        ++ID;
+
+        yield (IDprefix) ? IDprefix + ID : ID;
+    }
+}
+
+export { isColor, rgbToHex, timeToString, timer, parseTime, IDgenerator };

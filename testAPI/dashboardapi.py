@@ -49,7 +49,8 @@ class thread2:
 
             for index, row in self.df.iterrows():
                 self.flag = True
-                if row[constants.LOC_COLS['state']] == 'DISCONNECTED' or row[constants.LOC_COLS['state']] == 'OFFLINE':
+                print('LoopStarted')
+                '''if row[constants.LOC_COLS['state']] == 'DISCONNECTED' or row[constants.LOC_COLS['state']] == 'OFFLINE':
                     continue
                 if row[constants.LOC_COLS['latitude']] is None:
                     continue
@@ -77,12 +78,45 @@ class thread2:
                     row[constants.LOC_COLS['avlzone']],
                     row[constants.LOC_COLS['veh-color']],
                     int(row[constants.LOC_COLS['affiliateID']]),
-		            int(row[constants.LOC_COLS['capacity']])
+		    int(row[constants.LOC_COLS['capacity']]),
+                    int(row[constants.LOC_COLS['load']])
 
+                ]'''
+                if row[self.df.columns.get_loc('STATE')] == 'DISCONNECTED' or row[self.df.columns.get_loc('STATE')] == 'OFFLINE':
+                    continue
+                if row[self.df.columns.get_loc('LATITUDE')] is None:
+                    continue
+                
+                for item in self.compiled_data:
+                    print(self.compiled_data)
+                    # print(item[1], ":", row[constants.LOC_COLS['vehicle']])
+                    if  item[1] == row[self.df.columns.get_loc('IVEHICLEID')]:
+                        print('got into loop')
+                        self.breakOuter = True
+                        print(self.breakOuter)
+                        break
+                if self.breakOuter:
+                    self.breakOuter = False
+                    continue
+
+                self.new_item = [
+                    # self.count,
+                    row[self.df.columns.get_loc('IVEHICLEID')],
+                    float(row[self.df.columns.get_loc('LATITUDE')]),
+                    float(row[self.df.columns.get_loc('LONGITUDE')]),
+                    row[self.df.columns.get_loc('STATE')],
+                    float(row[self.df.columns.get_loc('DIRECTION')]),
+                    float(row[self.df.columns.get_loc('NEXTSERVICELATITUDE')]),
+                    float(row[self.df.columns.get_loc('NEXTSERVICELONGITUDE')]),
+                    row[self.df.columns.get_loc('AVLZONE')],
+                    row[self.df.columns.get_loc('vColor')],
+                    int(row[self.df.columns.get_loc('iAffiliateID')]),
+                    int(row[self.df.columns.get_loc('vSeating')]),
+                    int(row[self.df.columns.get_loc('TRIPSIRTDO')])
                 ]
                 self.compiled_data.append(self.new_item)
                 self.count += 1
-                
+                print(self.count)
             self.response += "Data Compiled"
             return jsonify({'response': self.response, 'avl': self.compiled_data})
 
@@ -218,11 +252,11 @@ class thread2:
 
     class Alerts:
         def __init__(self):
+            self.compiled_data = []
+            self.response = ""
             self.conn = pyodbc.connect(constants.DB_CONNECT_CRED)
 
         def get_alerts(self, date, time):
-            self.compiled_data = []
-            self.response = ""
             self.one_minute = timedelta(minutes = 1)
             self.minus_minute = time - self.one_minute
             self.oldtime = self.minus_minute.time()
@@ -320,4 +354,4 @@ def __main__():
     
 
 if __name__ == "__main__":
-    app.run(host='192.168.13.81', port='1222', debug=True, threaded=True)
+    app.run(host='192.168.13.91', port='1222', debug=True, threaded=True)

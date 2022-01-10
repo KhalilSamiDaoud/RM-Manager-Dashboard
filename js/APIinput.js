@@ -56,7 +56,7 @@ async function initLive() {
                     vehicleCache = data.avl;
                     getLiveVehiclesFromJSON(data.avl, API_COLUMNS_AVL);
 
-                    fetch(APIURL + API_FUNCTIONS.getTodayTrips + '?date=12/14/2021')
+                    fetch(APIURL + API_FUNCTIONS.getTodayTrips)
                         .then(response => response.json())
                         .then(data => {
                             if (data.triplist.length == 0) {

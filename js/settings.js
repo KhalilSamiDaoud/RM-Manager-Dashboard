@@ -43,7 +43,7 @@ function checkStorageAvaliability() {
 function initSettings() {
     if(isStorageAvaliable) {
         for (const property in SETTINGS) {
-            SETTINGS[property] = localCache.getItem(property) ?? property;
+            SETTINGS[property] = localCache.getItem(property) ?? SETTINGS[property];
         }
 
         applyCachedSettings();

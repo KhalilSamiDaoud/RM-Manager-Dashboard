@@ -15,7 +15,7 @@ import { initSettings } from './settings.js';
 let currMode = INIT_MODE.none;
 let prevInitalized = false;
 
-function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COORDS[0]) {
+function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COORDS) {
     currMode = mode;
     updateLiveButton(mode);
     initCalendar(mode);
@@ -134,20 +134,10 @@ function setHeaderTitle(title, specialMsg = '') {
     document.getElementById('headertitle').firstChild.innerHTML = title + specialMsg;
 }
 
-function* IDgenerator(IDprefix=null) {
-    let ID = 0;
-
-    while (true) {
-        ++ID;
-
-        yield (IDprefix) ? IDprefix + ID : ID;
-    }
-}
-
 function main() {
     startSequence();
 }
 
 main();
 
-export { stopSimulation, initSimulation, materializeInit, IDgenerator, currMode };
+export { stopSimulation, initSimulation, materializeInit, currMode };

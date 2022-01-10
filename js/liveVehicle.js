@@ -32,9 +32,10 @@ class LiveVehicle {
             strokeOpacity: 0,
             icons: [
                 {
+
                     icon: DLINE_SYMBOL,
                     offset: '0%',
-                    repeat: '20px'
+                    repeat: '15px'
                 }]
         });
 

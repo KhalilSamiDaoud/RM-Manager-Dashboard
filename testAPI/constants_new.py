@@ -1,7 +1,7 @@
 #
 # python constants for ITC-SIM API
 #
-#test
+
 DF_COLS = {
     'vehicle': 9,
     # 'nodetype': 3,
@@ -95,7 +95,7 @@ ZONE_LOCATIONS = """
             usp_Zone_GetVertices
             WITH (NOLOCK)
 """
-DB_QUERY_TRIPS = "SELECT * FROM ServiceRequestsOnDemand S WITH (NOLOCK) WHERE S.dtPickupDate > '{{ date }}' and S.dtPickupDate < '{{ date1 }}'"
+DB_QUERY_TRIPS = "SELECT * FROM ServiceRequestsOnDemand S WITH (NOLOCK) WHERE S.dtPickupDate > '{{ date_today }}' and S.dtPickupDate < '{{ date_tomorrow }}'"
 
 # Without SET NOCOUNT ON in the query the whole query will break!!!!
 FUTURE_DB_QUERY_TRIPS =  """

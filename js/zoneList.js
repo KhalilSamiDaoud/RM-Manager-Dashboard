@@ -1,4 +1,4 @@
-import { queueWin } from './liveQueue.js';
+import { activeVehicle, queueWin } from './liveQueue.js';
 import { rgbToHex } from './utils.js'
 import { Zone } from "./zone.js";
 
