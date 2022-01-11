@@ -9,6 +9,7 @@
     <link rel="icon" href="favicon.ico">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection">
+    <link href="css/nouislider.css" type="text/css" rel="stylesheet" >
     <link href="css/styles.css" type="text/css" rel="stylesheet" media="screen,projection">
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -98,9 +99,9 @@
                 <div id="queuepanel" class="card-panel secondary-theme tripqueue">
                     <!-- hidden file picker -->
                     <input id="filePicker" type="file" accept=".xlsx, .xls, .csv, .ods" style="display:none" multiple>
-                    <div class="no-padding no-margin row" style="margin-top: -10px; margin-bottom: 10px;">
+                    <div class="row" style="margin-top: -10px; margin-bottom: 10px;">
                         <h4 class="truncate panelheader col s6">Trip Queue</h4>
-                        <div class="no-padding no-margin col s6">
+                        <div class="col s6">
                             <a id="popqueue" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
                         </div>
                     </div>
@@ -138,13 +139,15 @@
                     </div>
 
                     <div class="queuefooter">
-                        <div id="zone_picker" class="input-field col s12 center">
-                            <select id="zone_select" multiple>
-                                <!-- Content filled in zoneList.js -->
-                                <option value="0" selected>Show All Zones</option>
-                            </select>
-                            <label class="white-text" style="font-size: 16px">Zone Filter:</label>
-                        </div>
+                        <span class="white-text">Display trip markers between:</span>
+                        <a href="#" class="light-blue-text text-lighten-2 right"><i class="material-icons tiny">restart_alt</i> clear</a>
+                        <form>
+                            <div class="row" style="margin-top: 12px">
+                                <div id="timeslider" class="center" style="width:80%; margin-left:10%"></div>
+                                <span id="lefttimevalue" class="white-text left">00:00 AN</span>
+                                <span id="righttimevalue" class="white-text right">00:00 AM</span>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 <!-- Place holder -->
@@ -163,9 +166,9 @@
 
             <div id="rightcol" class="col s12 m12 l3 right">
                 <div id="logpanel" class="card-panel secondary-theme" style="border-radius: 15px; margin-top: 15px; margin-right: 5px; margin-left: 30px;">
-                    <div class="no-padding no-margin row" style="margin-top: -10px; margin-bottom: 10px;">
+                    <div class="row" style="margin-top: -10px; margin-bottom: 10px;">
                         <h4 class="truncate panelheader col s6">Event Log</h4>
-                        <div class="no-padding no-margin col s6">
+                        <div class="col s6">
                             <a id="poplog" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
                             <a id="clearlog" class="btn-floating btn-medium  tooltipped waves-effect waves-light primary-theme right modal-trigger" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Clear log"><i class="material-icons">clear_all</i></a>
                         </div>
@@ -178,9 +181,9 @@
 
                 <!--disabled-->
                 <div id="statspanel" class="card-panel secondary-theme" style="border-radius: 15px; margin-top: 15px; margin-right: 5px; margin-left: 30px;">
-                    <div class="no-padding no-margin row" style="margin-top: -10px; margin-bottom: 10px;">
+                    <div class="row" style="margin-top: -10px; margin-bottom: 10px;">
                         <h4 class="truncate panelheader col s6">Statistics</h4>
-                        <div class="no-padding no-margin col s6">
+                        <div class="col s6">
                             <a id="popstats" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
                             <a id="detailstats" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Detail stats"><i class="material-icons">calculate</i></a>
                         </div>
@@ -445,6 +448,7 @@
     <script type="text/javascript" src="js/materialize.js"></script>
     <script type="text/javascript" src="js/markerAnimate.js"></script>
     <script type="text/javascript" src="js/slidingMarker.js"></script>
+    <script type="module" src="js/doubleTimeSlider.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

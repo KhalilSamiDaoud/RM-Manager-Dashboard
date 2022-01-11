@@ -140,7 +140,8 @@ const API_COLUMNS_AVL = Object.freeze({
     vehColor: 8,
     vehAfiliate: 9,
     vehCapacity: 10,
-    vehLoad: 11
+    vehLoad: 11,
+    vehName: 12
 });
 
 const API_COLUMNS_ZONES = Object.freeze({

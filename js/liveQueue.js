@@ -69,17 +69,17 @@ function handleVehicleSearch(evt) {
 
     for (let i=0; i < entries.length; i++) {
         if (entries[i].type == VEHICLE_LIST_ENTRY_TYPE.vehicle || entries[i].type == VEHICLE_LIST_ENTRY_TYPE.zone) {
-            if (!entries[i].ID.includes(filterString)) {
+            if (!entries[i].name.includes(filterString)) {
                 entries[i].elem.classList.add('showable');
 
                 if (entries[i].type == VEHICLE_LIST_ENTRY_TYPE.zone)
-                    liveQueueEntries.get(entries[i].ID + '-divider').elem.classList.add('showable');
+                    liveQueueEntries.get(entries[i].name + '-divider').elem.classList.add('showable');
             }
             else {
                 entries[i].elem.classList.remove('showable');
 
                 if (entries[i].type == VEHICLE_LIST_ENTRY_TYPE.zone) {
-                    liveQueueEntries.get(entries[i].ID + '-divider').elem.classList.remove('showable');
+                    liveQueueEntries.get(entries[i].name + '-divider').elem.classList.remove('showable');
 
                     let x = i;
                     while (x <= (i + entries[i].zone.vehiclesInZone.size)) {
@@ -111,13 +111,13 @@ function createLiveQueueEntries() {
             liveQueueEntries.set(zone.name + '-divider', new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.divider));
 
             zone.vehiclesInZone.forEach(vehicle => {
-                liveQueueEntries.set(vehicle.name, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.vehicle, vehicle));
-                liveQueueEntries.get(vehicle.name).populateTripList();
+                liveQueueEntries.set(vehicle.id, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.vehicle, vehicle));
+                liveQueueEntries.get(vehicle.id).populateTripList();
             });
         }
     });
 
-    let noneZone = zones.get('none');
+    let noneZone = zones.get('NONE');
 
     if (noneZone.vehiclesInZone.size == 0) return;
 
@@ -125,7 +125,7 @@ function createLiveQueueEntries() {
     liveQueueEntries.set(noneZone.name + '-divider', new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.divider));
 
     noneZone.vehiclesInZone.forEach(vehicle => {
-        liveQueueEntries.set(vehicle.name, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.vehicle, vehicle));
+        liveQueueEntries.set(vehicle.id, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.vehicle, vehicle));
     });
 
     updateActiveTripsList();
@@ -190,8 +190,6 @@ function updateActiveTripsList() {
 
     if(activeTripsList.tripsElem.childNodes.length == 0)
         activeTripsList.createEmptyList();
-
-    $('.tooltipped').tooltip();
 }
 
 function isQueuePoped() {
@@ -391,13 +389,13 @@ class VehicleListEntry {
         switch(this.type) {
             case VEHICLE_LIST_ENTRY_TYPE.vehicle:
                 this.vehicle = (refObj) ? refObj : this.#_throw('No Vehicle Specified.');
-                this.ID = String(refObj.name);
+                this.name = refObj.name;
                 this.tripList = new Map();
                 this.passengerCache = 0; 
                 break;
             case VEHICLE_LIST_ENTRY_TYPE.zone:
                 this.zone = (refObj) ? refObj : this.#_throw('No Zone Specified.');
-                this.ID = refObj.name;
+                this.name = refObj.name;
                 break;
             case VEHICLE_LIST_ENTRY_TYPE.search:
             case VEHICLE_LIST_ENTRY_TYPE.general:

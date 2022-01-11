@@ -43,11 +43,10 @@ function createVehicle(vehID, vehCap, startTime) {
     vehicles.push(new Vehicle(vehID, vehCap, COLORS[vehicles.length], startTime));
 }
 
-//get vehicle type eventually
-function createLiveVehicle(vehID, vehCap, vehLoad, startPos=null, zone=null, heading=null, color=null) {
-    if (liveVehicles.has(vehID)) return;
+function createLiveVehicle(params) {
+    if (liveVehicles.has(params.id)) return;
 
-    liveVehicles.set(vehID, new LiveVehicle(vehID, VEHICLE_TYPE.sedan, vehCap, vehLoad, startPos, zone, heading, color));
+    liveVehicles.set(params.id, new LiveVehicle(params));
 }
 
 function clearVehicles() {

@@ -72,7 +72,6 @@ function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COOR
     }
 
     initLiveQueue();
-    initZoneSelect();
 
     drawStaticIcons();
 

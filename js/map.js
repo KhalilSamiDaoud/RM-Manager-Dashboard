@@ -1,5 +1,6 @@
 import { DLINE_SYMBOL, stopSVG, depotSVG, dropoffSVG, pickupSVG } from './constants.js';
 import { isStatsPoped } from './statisticsList.js';
+import { initZoneSelect } from './zoneList.js';
 import { isQueuePoped } from './tripQueue.js';
 import { vehicles } from './vehicleList.js';
 import { isLogPoped } from './log.js';
@@ -219,13 +220,19 @@ function initMap(area) {
 
     trafficLayer = new google.maps.TrafficLayer();
 
-    const centerControlDiv = document.createElement("div");
+    const centerControlDiv = document.createElement('div');
     centerControl(centerControlDiv);
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
 
-    const trafficControlDiv = document.createElement("div");
+    const trafficControlDiv = document.createElement('div');
     trafficControl(trafficControlDiv);
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(trafficControlDiv);
+
+    const zoneControlDiv = document.createElement('div');
+    zoneControl(zoneControlDiv);
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(zoneControlDiv);
+
+    setTimeout(() => { $('.tooltipped').tooltip(); initZoneSelect(); }, 1000);
 }
 
 function resetMapCenter() {
@@ -431,6 +438,8 @@ function centerControl(controlDiv) {
     controlUI.title = "Click to recenter the map";
 
     controlUI.setAttribute('id', 'centerbtn');
+    controlUI.setAttribute('data-position', 'bottom');
+    controlUI.setAttribute('data-tooltip', 'Center map');
     controlDiv.appendChild(controlUI);
 
     const controlText = document.createElement("div");
@@ -451,6 +460,8 @@ function trafficControl(controlDiv) {
     controlUI.title = "Toogle Traffic Layer";
 
     controlUI.setAttribute('id', 'trafficbtn');
+    controlUI.setAttribute('data-position', 'bottom');
+    controlUI.setAttribute('data-tooltip', 'Toggle traffic layer');
     controlDiv.appendChild(controlUI);
 
     const controlText = document.createElement("div");
@@ -464,6 +475,35 @@ function trafficControl(controlDiv) {
         else
             trafficLayer.setMap(map);
     });
+}
+
+function zoneControl(controlDiv) {
+    const controlUI = document.createElement('div');
+    controlUI.classList.add('gmap-zone-control');
+
+    const selectDiv = document.createElement('div');
+    selectDiv.classList.add('input-field');
+    selectDiv.setAttribute('id', 'zone_picker');
+
+    const selectElem = document.createElement('select');
+    selectElem.setAttribute('id', 'zone_select');
+    selectElem.setAttribute('multiple', '');
+
+    const defaultOption = document.createElement('option');
+    defaultOption.classList.add('zone-control');
+    defaultOption.setAttribute('value', '0');
+    defaultOption.setAttribute('selected', '');
+    defaultOption.innerText = 'SHOW ALL ZONES';
+
+    const selectLabel = document.createElement('p');
+    selectLabel.classList.add('white-text', 'gmap-zone-label');
+    selectLabel.innerText = 'Show vehicles by zone:';
+
+    controlUI.appendChild(selectLabel);
+    selectDiv.appendChild(selectElem);
+    selectElem.appendChild(defaultOption);
+    controlUI.appendChild(selectElem);
+    controlDiv.appendChild(controlUI);
 }
 
 export { initMap, checkMapResize, drawTripPath, drawNextIcon, drawNextNIcons, drawStaticIcons, createVehicleIcon, resetMapCenter, map, mapCenter };

@@ -41,6 +41,12 @@ function drawMaterial() {
         });
     }
 
+    if (vehicleInfo.length == 1) {
+        vehicleInfo = [['Vehicle ID', 'Passengers', { role: 'annotation' }]];
+        vehicleInfo.push(['(N/A)', 0, 'All Vehicles are Empty']);
+        vehicleMax = 1;
+    }
+
     data = google.visualization.arrayToDataTable(vehicleInfo);
 
     options = {

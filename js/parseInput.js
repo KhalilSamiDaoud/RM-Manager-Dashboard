@@ -1,8 +1,8 @@
 import { vehicles, liveVehicles, createVehicle, createLiveVehicle, clearVehicles, sortVehicleList, updateVehicleInformation } from './vehicleList.js';
-import { timer, parseTime } from './utils.js';
+import { parseTime } from './utils.js';
 import { calcWaitTime } from './simMath.js';
 import { createZone } from './zoneList.js';
-import { TRIP_TYPE } from './constants.js';
+import { TRIP_TYPE, VEHICLE_TYPE } from './constants.js';
 import { addAPIEvent } from './liveLog.js';
 
 import { Trip } from './trip.js';
@@ -116,9 +116,25 @@ function getVehiclesFromJSON(records, fileColumns) {
 }
 
 function getLiveVehiclesFromJSON(records, fileColumns) {
+    let tempParams;
+
     records.forEach(record => {
-        createLiveVehicle(record[fileColumns.vehID], record[fileColumns.vehCapacity], record[fileColumns.vehLoad], { lat: record[fileColumns.vehLat], lng: record[fileColumns.vehLng] },
-            record[fileColumns.vehZone], record[fileColumns.vehHeading], record[fileColumns.vehColor]);
+        tempParams = {
+            id: record[fileColumns.vehID],
+            name: record[fileColumns.vehName],
+            maxCapacity: record[fileColumns.vehCapacity],
+            currCapacity: record[fileColumns.vehLoad],
+            zoneID: record[fileColumns.vehZone],
+            heading: record[fileColumns.vehHeading],
+            color: record[fileColumns.vehColor],
+            type: VEHICLE_TYPE.sedan,
+            currPos: { 
+                lat: record[fileColumns.vehLat], 
+                lng: record[fileColumns.vehLng] 
+            }
+        };
+
+        createLiveVehicle(tempParams);
     });
 }
 

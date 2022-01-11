@@ -141,7 +141,7 @@ body {
   margin-right: -23px;
   overflow: hidden;
   overflow-y: scroll;
-  height: 65vh;
+  height: calc(65vh - 10px);
 }
 
 .paneltriplist {
@@ -433,7 +433,7 @@ div#modalfare {
 }
 
 .queuefooter {
-  height: 50px;
+  height: 60px;
 }
 
 .routetripbutton {
@@ -790,7 +790,7 @@ div#modalfare {
   fill: white !important;
 }
 
-#zone_picker .select-wrapper .select-dropdown {
+.gmap-zone-control .select-wrapper .select-dropdown {
   color: white !important;
 }
 
@@ -941,4 +941,47 @@ div#modalfare {
 
 .pointer-cursor {
   cursor: pointer !important;
+}
+
+.gmap-zone-control {
+  background: rgb(0, 0, 0, 0.5);
+  border-radius: 15px 3px 3px 3px;
+  padding: 0px 15px 0px 15px;
+  height: 75px;
+  width: 250px;
+}
+
+.gmap-zone-label {
+    font-size: 16px;
+    font-weight: 500;
+    padding-top: 6px;
+    margin: 0px 0px -2px 0px;
+}
+
+#lefttimevalue {
+  margin: 12px 0 0 10%; 
+  transform: translateX(-50%); 
+  padding: 0px 10px 0px 10px; 
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 12px;
+  border-color: white;
+}
+
+#righttimevalue {
+  margin: 12px 10% 0 0; 
+  transform: translateX(50%); 
+  padding: 0px 10px 0px 10px; 
+  border-style: solid; 
+  border-width: 1px; 
+  border-radius: 12px; 
+  border-color: white;
+}
+
+.no-padding {
+  padding: 0 0 0 0 !important;
+}
+
+.no-margin {
+  margin: 0 0 0 0 !important;
 }

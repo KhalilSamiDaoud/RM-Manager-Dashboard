@@ -59,7 +59,8 @@ def get_locations():
 # get all trip data between today's date and tomorrows date.
 @app.route('/get-today-trips', methods=['GET'])
 @cross_origin()
-def get_today_trips(date):
+def get_today_trips():
+    date = datetime.today()
     compiled_data = []
 
     # replace query parameters with today's date {{ date_today }}, and tomorrow date {{ date_tomorrow }}
@@ -142,21 +143,18 @@ def get_zones():
             row[constants.ZONE_COLS['color']]
         ])
 
-    return jsonify({'response': "Zone List Created", 'zones': compiled_data})
+    return jsonify({'response': "Zone List Created", 'zones': compiled_data })
 
 
 # get any new alerts from the past minute (polled every minute)
 @app.route('/get-alerts', methods=['GET'])
 @cross_origin()
-def get_alerts(date, time):
+def get_alerts():
+    date = datetime.today()
     compiled_data = []
 
-    # create a time window to filter alerts with
-    one_minute = timedelta(minutes=1)
-    minus_minute = time - one_minute
-    oldtime = minus_minute.time()
-    dtime_with_decimals = datetime.combine(date, oldtime)
-    dtime = dtime_with_decimals.strftime('%m/%d/%Y %H:%M:%S')
+    date = (date - timedelta(minutes=1))
+    dtime = date.strftime('%m/%d/%Y %H:%M:%S')
 
     # replace query parameters target dateTime with calculated dateTime {{ date }}
     df = pd.read_sql(constants.DB_ALERTS.replace('{{ date }}', str(dtime)), dbConn)

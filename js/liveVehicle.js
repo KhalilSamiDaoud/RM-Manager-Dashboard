@@ -1,5 +1,5 @@
 import { handleVehicleSelect, liveQueueEntries, activeVehicle } from './liveQueue.js';
-import { VEHICLE_TYPE, DLINE_SYMBOL } from './constants.js';
+import { DLINE_SYMBOL } from './constants.js';
 import { liveVehicles } from './vehicleList.js';
 import { LiveMarker } from './liveMarker.js';
 import { zones } from './zoneList.js';
@@ -7,17 +7,20 @@ import { isColor } from './utils.js';
 import { map } from './map.js';
 
 class LiveVehicle {
-    constructor(name = 'N/A', type = VEHICLE_TYPE.sedan, maxCapacity = 0, currCapacity = 0, currPos = null, zoneID = null, heading = 0, color = 'black') {
-        this.maxCapacity = maxCapacity;
-        this.currCapacity = currCapacity;
-        this.currPos = currPos;
-        this.heading = heading;
-        this.type = type;
-        this.name = name;
+    constructor(params = nulls) {
+        if (!params) throw new Error('Null / undefined parameters used in liveVehicle');
+
+        this.maxCapacity = params.maxCapacity;
+        this.currCapacity = params.currCapacity;
+        this.currPos = params.currPos;
+        this.heading = params.heading;
+        this.type = params.type;
+        this.name = params.name;
+        this.id = params.id;
 
         this.tripsCompleted = 0;
-        
-        this.zone = (zones.has(zoneID)) ? zones.get(zoneID) : zones.get('none');
+
+        this.zone = (zones.has(params.zoneID)) ? zones.get(params.zoneID) : zones.get('NONE');
         this.zone.addVehicle(this);
 
         //ID by confirmation num
@@ -25,14 +28,13 @@ class LiveVehicle {
         //ID by confirmation num
         this.tripMarkers = new Map();
 
-        this.color = (isColor(color?.toLowerCase())) ? color?.toLowerCase() : 'black';
+        this.color = (isColor(params.color?.toLowerCase())) ? params.color?.toLowerCase() : 'black';
 
         this.path = new google.maps.Polyline({
             path: [this.currPos],
             strokeOpacity: 0,
             icons: [
                 {
-
                     icon: DLINE_SYMBOL,
                     offset: '0%',
                     repeat: '15px'
@@ -95,11 +97,11 @@ class LiveVehicle {
         this?.zone.removeVehicle(this);
         this?.path.setMap(null);
 
-        liveVehicles.delete(this.name);
+        liveVehicles.delete(this.id);
     }
 
     handleClick() {
-        handleVehicleSelect(liveQueueEntries.get(this.name));
+        handleVehicleSelect(liveQueueEntries.get(this.id));
         this.infoBox.open(map);
     }
 
