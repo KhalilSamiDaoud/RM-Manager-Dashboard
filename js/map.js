@@ -1,17 +1,19 @@
 import { DLINE_SYMBOL, stopSVG, depotSVG, dropoffSVG, pickupSVG } from './constants.js';
+import { globalConfigVars } from './configuration.js';
 import { isStatsPoped } from './statisticsList.js';
 import { initZoneSelect } from './zoneList.js';
 import { isQueuePoped } from './tripQueue.js';
 import { vehicles } from './vehicleList.js';
 import { isLogPoped } from './log.js';
 
-var map;
-var mapCenter;
+var map, mapZoom, mapCenter;
 
 let trafficLayer;
+let allowZoomModification = true;
 
 function initMap(area) {
     mapCenter = area;
+    mapZoom = globalConfigVars.enviorment.mapZoom;
 
     map = new google.maps.Map(document.getElementById('map'), {
         center: area,
@@ -21,7 +23,7 @@ function initMap(area) {
         scrollwheel: true,
         draggable: true,
         focusable: false,
-        zoom: 11,
+        zoom: mapZoom,
         styles: [
             {
                 "featureType": "all",
@@ -228,6 +230,10 @@ function initMap(area) {
     trafficControl(trafficControlDiv);
     map.controls[google.maps.ControlPosition.TOP_RIGHT].push(trafficControlDiv);
 
+    const zoomLockControlDiv = document.createElement('div');
+    zoomControl(zoomLockControlDiv);
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(zoomLockControlDiv);
+
     const zoneControlDiv = document.createElement('div');
     zoneControl(zoneControlDiv);
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(zoneControlDiv);
@@ -237,7 +243,12 @@ function initMap(area) {
 
 function resetMapCenter() {
     map.setCenter(mapCenter);
-    map.setZoom(11);
+    setMapZoom(mapZoom);
+}
+
+function setMapZoom(zoomLevel) {
+    if (allowZoomModification)
+        map.setZoom(zoomLevel);
 }
 
 function createVehicleIcon(vehicle) {
@@ -447,10 +458,7 @@ function centerControl(controlDiv) {
     controlText.innerHTML = '<i class="material-icons white-text" style="font-size:42px;">filter_center_focus</i>';
     controlUI.appendChild(controlText);
 
-    controlUI.addEventListener("click", () => {
-        map.setCenter(mapCenter);
-        map.setZoom(12);
-    });
+    controlUI.addEventListener("click", resetMapCenter);
 }
 
 function trafficControl(controlDiv) {
@@ -474,6 +482,38 @@ function trafficControl(controlDiv) {
             trafficLayer.setMap(null);
         else
             trafficLayer.setMap(map);
+    });
+}
+
+function zoomControl(controlDiv) {
+    const controlUI = document.createElement("div");
+    controlUI.classList.add('gmap-centerdiv');
+    controlUI.classList.add('tooltipped');
+    controlUI.title = 'Toogle Automatic Zoom';
+
+    controlUI.setAttribute('id', 'zoombtn');
+    controlUI.setAttribute('data-position', 'bottom');
+    controlUI.setAttribute('data-tooltip', 'Toogle Automatic Zoom');
+    controlDiv.appendChild(controlUI);
+
+    const controlText = document.createElement("div");
+    controlUI.classList.add('gmap-centericon', 'border-on');
+    controlText.innerHTML = '<i class="material-icons white-text" style="font-size:40px;">zoom_in</i>';
+    controlUI.appendChild(controlText);
+
+    controlUI.addEventListener("click", () => {
+        if (!allowZoomModification) {
+            allowZoomModification = true;
+            controlUI.classList.toggle('border-off');
+            controlUI.classList.toggle('border-on');
+            controlText.innerHTML = '<i class="material-icons white-text" style="font-size:40px;">zoom_in</i>';
+        }
+        else {
+            allowZoomModification = false;
+            controlUI.classList.toggle('border-off');
+            controlUI.classList.toggle('border-on');
+            controlText.innerHTML = '<i class="material-icons white-text" style="font-size:40px;">lock_outline</i>';
+        }
     });
 }
 
@@ -506,4 +546,4 @@ function zoneControl(controlDiv) {
     controlDiv.appendChild(controlUI);
 }
 
-export { initMap, checkMapResize, drawTripPath, drawNextIcon, drawNextNIcons, drawStaticIcons, createVehicleIcon, resetMapCenter, map, mapCenter };
+export { initMap, checkMapResize, drawTripPath, drawNextIcon, drawNextNIcons, drawStaticIcons, createVehicleIcon, resetMapCenter, setMapZoom, map, mapCenter };

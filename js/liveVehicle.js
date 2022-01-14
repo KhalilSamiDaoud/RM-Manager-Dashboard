@@ -1,10 +1,10 @@
 import { handleVehicleSelect, liveQueueEntries, activeVehicle } from './liveQueue.js';
+import { isColor, timeToString } from './utils.js';
+import { map, setMapZoom } from './map.js';
 import { DLINE_SYMBOL } from './constants.js';
 import { liveVehicles } from './vehicleList.js';
 import { LiveMarker } from './liveMarker.js';
 import { zones } from './zoneList.js';
-import { isColor } from './utils.js';
-import { map } from './map.js';
 
 class LiveVehicle {
     constructor(params = nulls) {
@@ -27,6 +27,30 @@ class LiveVehicle {
         this.assignedTrips = new Map();
         //ID by confirmation num
         this.tripMarkers = new Map();
+        this.isFocusingMarker = false;
+
+        this.tripDisplayWindow = {
+            lower: { 
+                timeString: '12:00 AM', 
+                timeVal: 0 
+            },
+            upper: { 
+                timeString: '11:59 PM', 
+                timeVal: 1439 
+            },
+            getTimeVals: function() { 
+                return [this.lower.timeVal, this.upper.timeVal];
+            },
+            setTimeVals: function(values) {
+                this.lower.timeVal = values[0];
+                this.lower.timeString = timeToString(values[0]);
+                this.upper.timeVal = values[1];
+                this.upper.timeString = timeToString(values[1]);
+            },
+            isDefaultVals: function() {
+                return (this.lower.timeVal == 0 && this.upper.timeVal == 1439);
+            }
+        };
 
         this.color = (isColor(params.color?.toLowerCase())) ? params.color?.toLowerCase() : 'black';
 
@@ -101,8 +125,11 @@ class LiveVehicle {
     }
 
     handleClick() {
-        handleVehicleSelect(liveQueueEntries.get(this.id));
+        this.isFocusingMarker = false;
+        this.updateVehiclePath();
         this.infoBox.open(map);
+
+        handleVehicleSelect(liveQueueEntries.get(this.id));
     }
 
     handleMouseOver() {
@@ -166,7 +193,7 @@ class LiveVehicle {
     createMarkers() {
         this.assignedTrips.forEach( trip => {
             if (trip.active)
-                this.tripMarkers.set(trip.confirmation, new LiveMarker(trip));
+                this.tripMarkers.set(trip.confirmation, new LiveMarker(trip, this));
         });
     }
 
@@ -181,7 +208,7 @@ class LiveVehicle {
                     this.tripMarkers.get(trip.confirmation).updateToPickedUp();
             }
             else if (!this.tripMarkers.has(trip.confirmation) && trip.active)
-                this.tripMarkers.set(trip.confirmation, new LiveMarker(trip));
+                this.tripMarkers.set(trip.confirmation, new LiveMarker(trip, this));
         });
 
         this.tripMarkers.forEach(marker => {
@@ -190,21 +217,56 @@ class LiveVehicle {
                 marker.destroy();
             }
         });
+
+        if (!this.tripDisplayWindow.isDefaultVals())
+            this.updateTimedMarkers(true)
+    }
+
+    updateTimedMarkers(autoUpdate=false) {
+        if(autoUpdate && this.isFocusingMarker) return;
+
+        this.isFocusingMarker = false;
+
+        this.hidePath();
+        this.hideTripMarkers();
+        this.tripMarkers.clear();
+
+        let testStart, testEnd;
+
+        testStart = new Date('01/01/1970 ' + this.tripDisplayWindow.lower.timeString);
+        testEnd = new Date('01/01/1970 ' + this.tripDisplayWindow.upper.timeString);
+
+        this.assignedTrips.forEach(trip => {
+            if (trip.active)
+                if (new Date('01/01/1970 ' + trip.schPUTime) >= testStart &&
+                    new Date('01/01/1970 ' + trip.schDOTime) <= testEnd)
+                    this.tripMarkers.set(trip.confirmation, new LiveMarker(trip, this));
+        });
+
+        this.updateVehiclePath();
+        this.showPath();
+        this.showTripMarkers();
     }
 
     updateVehiclePath() {
-        if (!this.assignedTrips) return;
+        if (!this.assignedTrips || this.isFocusingMarker) return;
 
         let tempPath = [];
-
-        tempPath.push(this.currPos);
+        let firstTrip = [...this.assignedTrips.values()].find(trip => {
+            if (trip.active)
+                return true;
+        });
 
         this.assignedTrips.forEach( trip => {
-            if(trip.active) {
-                if (trip.status != 'PICKEDUP')
-                    tempPath.push(trip.PUcoords);
-                tempPath.push(trip.DOcoords);
-            }                
+            if (this.tripMarkers.has(trip.confirmation)) {
+                if(trip.active) {
+                    if (firstTrip?.confirmation === trip.confirmation)
+                        tempPath.push(this.currPos);
+                    if (trip.status != 'PICKEDUP')
+                        tempPath.push(trip.PUcoords);
+                    tempPath.push(trip.DOcoords);
+                }  
+            }              
         });
 
         this.path.setPath(tempPath);
@@ -225,8 +287,8 @@ class LiveVehicle {
     }
 
     showTripMarkers() {
-        this.tripMarkers.forEach(trip => {
-            trip.showMarkers();
+        this.tripMarkers.forEach(marker => {
+            marker.showMarkers();
         });
     }
 
@@ -239,8 +301,8 @@ class LiveVehicle {
     }
 
     hideTripMarkers() {
-        this.tripMarkers.forEach(trip => {
-            trip.hideMarkers();
+        this.tripMarkers.forEach(marker => {
+            marker.hideMarkers();
         });
     }
 
@@ -252,6 +314,19 @@ class LiveVehicle {
         if(!trip) return;
 
         this.assignedTrips.set(trip.confirmation, trip);
+    }
+
+    sortTrips() {
+        if(!this.assignedTrips.size) return;
+
+        this.assignedTrips = new Map([...this.assignedTrips].sort((a,b) => {
+            if (a[1].schPUDateTime.getTime() < b[1].schPUDateTime.getTime())
+                return -1;
+            else if (a[1].schPUDateTime.getTime() > b[1].schPUDateTime.getTime())
+                return 1;
+            else
+                return 0;
+        }));
     }
 
     removeTrip(trip) {
@@ -277,12 +352,49 @@ class LiveVehicle {
 
     focusSelf() {
         map.setCenter(this.currPos);
-        map.setZoom(15);
+        setMapZoom(15);
     }
 
     calcRotation(startPos, endPos) {
         if (startPos && endPos)
             return google.maps.geometry.spherical.computeHeading(startPos, endPos);
+    }
+
+    focusTripMarker(markerID) {
+        this.isFocusingMarker = true;
+
+        this.tripMarkers.forEach(marker => {
+            if(marker.id != markerID)
+                marker.hideMarkers();
+            else {
+                marker.showMarkers();
+
+                if(this.assignedTrips.get(markerID).status !== 'PICKEDUP')
+                    this.path.setPath([marker.PUcoords, marker.DOcoords]);
+                else
+                    this.path.setPath([this.currPos, marker.DOcoords]);
+            }
+        });
+    }
+
+    hide() {
+        if (this.isFocusingMarker) {
+            this.isFocusingMarker = false;
+            this.updateVehiclePath();
+        }
+
+        this.hidePath();
+        this.hideTripMarkers();
+    }
+
+    show() {
+        if (this.isFocusingMarker) {
+            this.isFocusingMarker = false;
+            this.updateVehiclePath();
+        }
+
+        this.showPath();
+        this.showTripMarkers();
     }
 
     #determineIsOnTime(trip) {

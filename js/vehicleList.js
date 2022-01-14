@@ -1,4 +1,4 @@
-import {TEST_ID_LETTERS, COLORS, VEHICLE_TYPE, TEST_STOPS} from './constants.js';
+import {TEST_ID_LETTERS, COLORS, TEST_STOPS} from './constants.js';
 import { updateVehicleTripLists } from './liveQueue.js';
 import { LiveVehicle } from './liveVehicle.js';
 import { Vehicle } from './vehicle.js';
@@ -68,14 +68,21 @@ function sortVehicleList() {
     vehicles.sort(vehicleStartTimeCompare);
 }
 
-function updateVehicleInformation() {
-    updateVehicleTripLists();
-    
+function updateVehicleInformation() {    
     liveVehicles.forEach( vehicle => {
-        vehicle.updateInfoBox();
+        vehicle.sortTrips();
         vehicle.updateMarkers();
+        vehicle.updateInfoBox();
         vehicle.updateVehiclePath();
     });
+
+    updateVehicleTripLists();
+}
+
+function sortLiveVehicleTrips() {
+    liveVehicles.forEach(vehicle => {
+        vehicle.sortTrips();
+    })
 }
 
 function vehicleStartTimeCompare(a, b) {
@@ -96,4 +103,4 @@ function isAllDepot() {
 }
 
 export { populateRandVehicles, createVehicle, createLiveVehicle, clearVehicles, clearLiveVehicles, 
-    sortVehicleList, isAllDepot, updateVehicleInformation, vehicles, liveVehicles };
+    sortVehicleList, isAllDepot, updateVehicleInformation, sortLiveVehicleTrips, vehicles, liveVehicles };

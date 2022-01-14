@@ -32,21 +32,17 @@
         </ul>
         <ul class="right">
             <li class="disable-control">
-                <!--disabled-->
-                <a id="alerts_dropdown" class="dropdown-trigger btn secondary-theme" style="border-radius: 21px; height: 42px; line-height: 42px; width: 185px;" href="#" data-target="alerts_list">
+                <a id="alerts_dropdown" class="dropdown-trigger btn secondary-theme alerts-dropdown" href="#" data-target="alerts_list">
+                    <span id="alertsdropdownbadge" class="new badge right alerts-dropdown-badge red lighten-2">0</span>
                     <i class="material-icons left" style="font-size:28px;">notification_important</i>
-                    <span class="new badge red lighten-2 right" style="margin-top:10px; margin-right:5px;">7</span>
-                    alerts
+                    <span>alerts</span>
                 </a>
 
                 <!-- Dropdown Structure -->
                 <ul id="alerts_list" class="dropdown-content">
-                    <li><a href="#!" class="black-text">Late Arival<span class="new badge orange lighten-1 right">3</span></a></li>
-                    <li><a href="#!" class="black-text">Breakdown<span class="new badge right">1</span></a></li>
-                    <li><a href="#!" class="black-text">No-Show<span class="new badge right">1</span></a></li>
-                    <li><a href="#!" class="black-text">Manifest<span class="new badge right">2</span></a></li>
+                    <li><a href="#!" class="black-text">test<span class="new badge right">0</span></a></li>
                     <li class="divider"></li>
-                    <li><a href="#!" class="black-text">All Alerts<span class="new badge red lighten-2 right">7</span></a></li>
+                    <li><a href="#!" class="black-text">test<span class="new badge right">0</span></a></li>
                 </ul>
             </li>
             <li class="disable-control">
@@ -102,7 +98,7 @@
                     <div class="row" style="margin-top: -10px; margin-bottom: 10px;">
                         <h4 class="truncate panelheader col s6">Trip Queue</h4>
                         <div class="col s6">
-                            <a id="popqueue" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                            <a id="popqueue" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
                         </div>
                     </div>
 
@@ -138,14 +134,16 @@
                         <!-- Content filled in tripQueue.js -->
                     </div>
 
-                    <div class="queuefooter">
-                        <span class="white-text">Display trip markers between:</span>
-                        <a href="#" class="light-blue-text text-lighten-2 right"><i class="material-icons tiny">restart_alt</i> clear</a>
+                    <div id="queuefooter" class="queuefooter disable-control">
+                        <div style="margin-top:-10px">
+                            <span class="white-text">Display trip markers between:</span>
+                            <a id="resettimeslider" href="#" class="light-blue-text text-lighten-2 right"><i class="material-icons tiny">restart_alt</i> reset</a>
+                        </div>
                         <form>
-                            <div class="row" style="margin-top: 12px">
+                            <div class="row" style="margin-top: 15px">
                                 <div id="timeslider" class="center" style="width:80%; margin-left:10%"></div>
-                                <span id="lefttimevalue" class="white-text left">00:00 AN</span>
-                                <span id="righttimevalue" class="white-text right">00:00 AM</span>
+                                <span id="lefttimevalue" class="white-text left">00:00 AM</span>
+                                <span id="righttimevalue" class="white-text right">00:00 PM</span>
                             </div>
                         </form>
                     </div>
@@ -169,7 +167,7 @@
                     <div class="row" style="margin-top: -10px; margin-bottom: 10px;">
                         <h4 class="truncate panelheader col s6">Event Log</h4>
                         <div class="col s6">
-                            <a id="poplog" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                            <a id="poplog" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
                             <a id="clearlog" class="btn-floating btn-medium  tooltipped waves-effect waves-light primary-theme right modal-trigger" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Clear log"><i class="material-icons">clear_all</i></a>
                         </div>
                     </div>
@@ -184,7 +182,7 @@
                     <div class="row" style="margin-top: -10px; margin-bottom: 10px;">
                         <h4 class="truncate panelheader col s6">Statistics</h4>
                         <div class="col s6">
-                            <a id="popstats" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                            <a id="popstats" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="white-space: nowrap;" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
                             <a id="detailstats" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right disable-control" style="margin-right:10px; white-space: nowrap;" data-position="bottom" data-tooltip="Detail stats"><i class="material-icons">calculate</i></a>
                         </div>
                     </div>

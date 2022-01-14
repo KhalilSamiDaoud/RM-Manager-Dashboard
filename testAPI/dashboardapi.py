@@ -1,357 +1,201 @@
 from flask_cors import CORS, cross_origin
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_restful import Api
+from datetime import datetime, timedelta
 import pandas as pd
 import pyodbc
-import sys
-from datetime import datetime, timedelta
-import requests
-import geopy 
-from geopy.geocoders import GoogleV3 
-import math
-import time
-import threading
-import asyncio
-
 import constants
-
 
 app = Flask(__name__)
 cors = CORS(app)
 api = Api(app)
 
-older_data = []
+# global connection obj used in each sql query
+dbConn = pyodbc.connect(constants.DB_CONNECT_CRED)
 
 
-
-class thread2:
-    def __init__(self):
-        self.response = ""
-    class Avl:
-        def __init__(self):
-            self.old_data = []
-            self.compiled_data = []
-            self.response = ""
-            self.conn = pyodbc.connect(constants.DB_CONNECT_CRED)
-            self.init = 0
-            
-
-        def get_locations(self, init):
-            self.init = init
-            print(self.init)
-            self.response = ""
-            self.old_data = self.compiled_data
-            self.compiled_data = []
-            self.df = pd.read_sql(constants.DB_SMART_DEVICE, self.conn)
-            self.df = self.df.fillna(0)
-            self.count = 0
-            self.breakOuter = False
-
-            for index, row in self.df.iterrows():
-                self.flag = True
-                print('LoopStarted')
-                '''if row[constants.LOC_COLS['state']] == 'DISCONNECTED' or row[constants.LOC_COLS['state']] == 'OFFLINE':
-                    continue
-                if row[constants.LOC_COLS['latitude']] is None:
-                    continue
-                for item in self.compiled_data:
-                    # print(self.compiled_data)
-                    # print(item[1], ":", row[constants.LOC_COLS['vehicle']])
-                    if  item[1] == row[constants.LOC_COLS['vehicle']]:
-                        # print('got into loop')
-                        self.breakOuter = True
-                        # print(self.breakOuter)
-                        break
-                if self.breakOuter:
-                    self.breakOuter = False
-                    continue
-
-                self.new_item = [
-                    # self.count,
-                    row[constants.LOC_COLS['vehicle']],
-                    float(row[constants.LOC_COLS['latitude']]),
-                    float(row[constants.LOC_COLS['longitude']]),
-                    row[constants.LOC_COLS['state']],
-                    float(row[constants.LOC_COLS['direction']]),
-                    float(row[constants.LOC_COLS['stop-lat']]),
-                    float(row[constants.LOC_COLS['stop-long']]),
-                    row[constants.LOC_COLS['avlzone']],
-                    row[constants.LOC_COLS['veh-color']],
-                    int(row[constants.LOC_COLS['affiliateID']]),
-		    int(row[constants.LOC_COLS['capacity']]),
-                    int(row[constants.LOC_COLS['load']])
-
-                ]'''
-                if row[self.df.columns.get_loc('STATE')] == 'DISCONNECTED' or row[self.df.columns.get_loc('STATE')] == 'OFFLINE':
-                    continue
-                if row[self.df.columns.get_loc('LATITUDE')] is None:
-                    continue
-                
-                for item in self.compiled_data:
-                    print(self.compiled_data)
-                    # print(item[1], ":", row[constants.LOC_COLS['vehicle']])
-                    if  item[1] == row[self.df.columns.get_loc('IVEHICLEID')]:
-                        print('got into loop')
-                        self.breakOuter = True
-                        print(self.breakOuter)
-                        break
-                if self.breakOuter:
-                    self.breakOuter = False
-                    continue
-
-                self.new_item = [
-                    # self.count,
-                    row[self.df.columns.get_loc('IVEHICLEID')],
-                    float(row[self.df.columns.get_loc('LATITUDE')]),
-                    float(row[self.df.columns.get_loc('LONGITUDE')]),
-                    row[self.df.columns.get_loc('STATE')],
-                    float(row[self.df.columns.get_loc('DIRECTION')]),
-                    float(row[self.df.columns.get_loc('NEXTSERVICELATITUDE')]),
-                    float(row[self.df.columns.get_loc('NEXTSERVICELONGITUDE')]),
-                    row[self.df.columns.get_loc('AVLZONE')],
-                    row[self.df.columns.get_loc('vColor')],
-                    int(row[self.df.columns.get_loc('iAffiliateID')]),
-                    int(row[self.df.columns.get_loc('vSeating')]),
-                    int(row[self.df.columns.get_loc('TRIPSIRTDO')])
-                ]
-                self.compiled_data.append(self.new_item)
-                self.count += 1
-                print(self.count)
-            self.response += "Data Compiled"
-            return jsonify({'response': self.response, 'avl': self.compiled_data})
-
-            
-            self.compiled_data = []
-
-
-    class Trips:
-        def __init__(self):
-            
-            self.compiled_data = []
-            self.response = ""
-            self.conn = pyodbc.connect(constants.DB_CONNECT_CRED)
-
-        def format_row(self, row):
-            row[constants.DF_COLS['schtime']] = str(row[constants.DF_COLS['schtime']]).split()[1] \
-                if row[constants.DF_COLS['schtime']] \
-                else ''
-            # row[constants.DF_COLS['reqtime']] = str(row[constants.DF_COLS['reqtime']]).split()[1] \
-            #     if row[constants.DF_COLS['reqtime']] \
-            #     else ''
-            # row[constants.DF_COLS['lat']] = float(row[constants.DF_COLS['lat']]) \
-            #     if row[constants.DF_COLS['lat']] \
-            #     else ''
-            # row[constants.DF_COLS['long']] = float(row[constants.DF_COLS['long']]) \
-            #     if row[constants.DF_COLS['long']] \
-            #     else ''
-            # if row[constants.DF_COLS['nodetype']]:
-            #     if row[constants.DF_COLS['nodetype']] == 'P':
-            #         row[constants.DF_COLS['nodetype']] += 'U'
-            #     if row[constants.DF_COLS['nodetype']] == 'D':
-            #         row[constants.DF_COLS['nodetype']] += 'O'
-
-            # if math.isnan(row[constants.DF_COLS['idletime']]):
-            #     print(row[constants.DF_COLS['idletime']])
-            #     row[constants.DF_COLS['idletime']] = 0
-
-        def get_today_trips(self, date):
-            self.compiled_data = []
-            self.one_day = timedelta(days=1)
-            self.tomorrow_date = date + self.one_day
-            #print(self.tomorrow_date)
-            query = constants.DB_QUERY_TRIPS.replace('{{ date }}', str(date))
-            query1 = query.replace('{{ date1 }}', str(self.tomorrow_date))
-            self.df = pd.read_sql(query1, self.conn)
-            self.df = self.df.fillna(0)
-            self.conf = []
-            for index, row in self.df.iterrows():
-                # if row[constants.DF_COLS['vehicle']] is None:
-                #     continue
-
-                self.new_entry = [
-                    0,
-                    row[constants.DF_COLS['vehicle']],
-                    # row[constants.DF_COLS['nodetype']],
-                    # row[constants.DF_COLS['reqtime']],
-                    row[constants.DF_COLS['schtime']],
-		            row[constants.DF_COLS['schdotime']],
-                    int(row[constants.DF_COLS['passcount']]),
-                    row[constants.DF_COLS['name']],
-                    float(row[constants.DF_COLS['PUlat']]),
-                    float(row[constants.DF_COLS['PUlong']]),
-                    float(row[constants.DF_COLS['DOlat']]),
-                    float(row[constants.DF_COLS['DOlong']]),
-                    row[constants.DF_COLS['PUaddr']],
-                    row[constants.DF_COLS['DOaddr']],
-                    float(row[constants.DF_COLS['trvtime']]),
-                    float(row[constants.DF_COLS['trvdist']]),
-                    # row[constants.DF_COLS['idletime']],
-                    int(row[constants.DF_COLS['confnum']]),
-                    row[constants.DF_COLS['phonenum']],
-                    row[constants.DF_COLS['status']]
-                ]
-                self.compiled_data.append(self.new_entry)
-
-            
-            print(self.compiled_data)
-            self.response += "Trip List Created"
-            return jsonify({'response': self.response, 'triplist': self.compiled_data})
-
-        def get_future_trips(self, date):
-            self.compiled_data = []
-            self.df = pd.read_sql(constants.FUTURE_DB_QUERY_TRIPS.replace('{{ date }}', date), self.conn)
-            self.df = self.df.fillna(0)
-
-            for index, row in self.df.iterrows():
-                # self.format_row(row)
-
-                self.new_entry = [
-                    0,
-                    row[constants.DF_FUTURE_COLS['vehicle']],
-                    row[constants.DF_FUTURE_COLS['nodetype']],
-                    row[constants.DF_FUTURE_COLS['reqtime']],
-                    row[constants.DF_FUTURE_COLS['schtime']],
-                    row[constants.DF_FUTURE_COLS['passcount']],
-                    row[constants.DF_FUTURE_COLS['name']],
-                    float(row[constants.DF_FUTURE_COLS['lat']]),
-                    float(row[constants.DF_FUTURE_COLS['long']]),
-                    row[constants.DF_FUTURE_COLS['addr']],
-                    row[constants.DF_FUTURE_COLS['trvtime']],
-                    row[constants.DF_FUTURE_COLS['trvdist']],
-                    row[constants.DF_FUTURE_COLS['idletime']],
-                    row[constants.DF_FUTURE_COLS['confnum']]
-                ]
-                self.compiled_data.append(self.new_entry)
-
-            self.response += "Trip List Created"
-            return jsonify({'response': self.response, 'triplist': self.compiled_data})
-
-
-    class Zones:
-        def __init__(self):
-            self.compiled_data = []
-            self.response = ""
-            self.conn = pyodbc.connect(constants.DB_CONNECT_CRED)
-    
-
-        def get_zones(self):
-            self.df = pd.read_sql(constants.DB_ZONES, self.conn)
-            self.df = self.df.fillna(0)
-            # self.df.to_csv('zones.csv')
-            for index, row in self.df.iterrows():
-                self.new_entry = [
-                    row[constants.ZONE_COLS['name']],
-                    row[constants.ZONE_COLS['lat']],
-                    row[constants.ZONE_COLS['long']],
-                    row[constants.ZONE_COLS['ID']],
-                    row[constants.ZONE_COLS['color']]
-                ]
-                self.compiled_data.append(self.new_entry)
-            self.response += "Zone List Created"
-            return jsonify({'response': self.response, 'zones': self.compiled_data})
-
-    class Alerts:
-        def __init__(self):
-            self.compiled_data = []
-            self.response = ""
-            self.conn = pyodbc.connect(constants.DB_CONNECT_CRED)
-
-        def get_alerts(self, date, time):
-            self.one_minute = timedelta(minutes = 1)
-            self.minus_minute = time - self.one_minute
-            self.oldtime = self.minus_minute.time()
-            self.dtime_with_decimals = datetime.combine(date, self.oldtime)
-            self.dtime = self.dtime_with_decimals.strftime('%m/%d/%Y %H:%M:%S')
-            print(self.dtime)
-            self.df = pd.read_sql(constants.DB_ALERTS.replace('{{ date }}', str(self.dtime)), self.conn)
-            self.df = self.df.fillna(0)
-            # for index, row in self.df.iterrows():
-            #     words = row[constants.ALERT_COLS['message']].split(" ")
-            #     print(words)
-
-            for index, row in self.df.iterrows():
-                self.words = row[constants.ALERT_COLS['message']].split(" ")
-                
-                print(self.words)
-                self.first_two = str(self.words[0]) + " " + str(self.words[1])
-                print(self.first_two)
-                if self.first_two == "NO SHOW":
-                    pass
-                elif self.words[0] == "Emergency":
-                    pass
-                elif self.words[0] == "Speeding":
-                    pass
-                else:
-                    continue
-
-                self.new_entry = [
-                    row[constants.ALERT_COLS['message']],
-                    row[constants.ALERT_COLS['details']],
-                    row[constants.ALERT_COLS['datetime']],
-                    row[constants.ALERT_COLS['affiliateID']]
-                ]
-                self.compiled_data.append(self.new_entry)
-            self.response += "Alert List Created"
-            return jsonify({'response': self.response, 'Alerts': self.compiled_data})
-
+# default route to check if API is online
 @app.route('/api', methods=['GET'])
 @cross_origin()
 def page():
     response = "<h1>Simulation API</h1><p>This is the Simulation API for ITCurves</p>"
     return jsonify({'response': response})
-thr2 = thread2()
-avl = thr2.Avl()
+
+
+# get vehicle location, next stop information,
 @app.route('/get-avl', methods=['GET'])
 @cross_origin()
-def get_avl_data():
-    init = request.args.get('init')
-    print(init)
-    return avl.get_locations(init)
+def get_locations():
+    compiled_data = []
 
-trips = thr2.Trips()
+    df = pd.read_sql(constants.DB_SMART_DEVICE, dbConn)
+    df = df.fillna(0)
+
+    for index, row in df.iterrows():
+        if row[df.columns.get_loc('STATE')] == 'DISCONNECTED' or row[df.columns.get_loc('STATE')] == 'OFFLINE' or row[df.columns.get_loc('STATE')] == '':
+            continue
+        if row[df.columns.get_loc('LATITUDE')] is None:
+            continue
+
+        compiled_data.append([
+            row[df.columns.get_loc('iVehicleID')],
+            float(row[df.columns.get_loc('LATITUDE')]),
+            float(row[df.columns.get_loc('LONGITUDE')]),
+            row[df.columns.get_loc('STATE')],
+            float(row[df.columns.get_loc('DIRECTION')]),
+            float(row[df.columns.get_loc('NEXTSERVICELATITUDE')]),
+            float(row[df.columns.get_loc('NEXTSERVICELONGITUDE')]),
+            row[df.columns.get_loc('AVLZONE')],
+            row[df.columns.get_loc('vColor')],
+            int(row[df.columns.get_loc('iAffiliateID')]),
+            int(row[df.columns.get_loc('vSeating')]),
+            row[df.columns.get_loc('TRIPSIRTDO')],
+            row[df.columns.get_loc('vVehicleNo')]
+        ])
+
+    # add duplicate filter ???
+    return jsonify({'response': "Data Compiled", 'avl': compiled_data})
+
+
+# get all trip data between today's date and tomorrows date.
 @app.route('/get-today-trips', methods=['GET'])
 @cross_origin()
-def get_trip_data():
-    today = datetime.today()
-    todaydate = today.date()
-    return trips.get_today_trips(todaydate)
+def get_today_trips():
+    compiled_data = []    
+    startDate = (datetime.today()).strftime("%m/%d/%y")
+    endDate = (datetime.today() + timedelta(days = 1)).strftime("%m/%d/%y")
 
+    # replace query parameters with today's date {{ date_today }}, and tomorrow date {{ date_tomorrow }}
+    query = constants.DB_QUERY_TRIPS.replace('{{ date_today }}', str(startDate))
+    query = query.replace('{{ date_tomorrow }}', str(endDate))
+
+    df = pd.read_sql(query, dbConn)
+    df = df.fillna(0)
+
+    for index, row in df.iterrows():
+        compiled_data.append([
+            0,
+            row[constants.DF_COLS['vehicle']],
+            row[constants.DF_COLS['schtime']],
+            row[constants.DF_COLS['schdotime']],
+            int(row[constants.DF_COLS['passcount']]),
+            row[constants.DF_COLS['name']],
+            float(row[constants.DF_COLS['PUlat']]),
+            float(row[constants.DF_COLS['PUlong']]),
+            float(row[constants.DF_COLS['DOlat']]),
+            float(row[constants.DF_COLS['DOlong']]),
+            row[constants.DF_COLS['PUaddr']],
+            row[constants.DF_COLS['DOaddr']],
+            float(row[constants.DF_COLS['trvtime']]),
+            float(row[constants.DF_COLS['trvdist']]),
+            int(row[constants.DF_COLS['confnum']]),
+            row[constants.DF_COLS['phonenum']],
+            row[constants.DF_COLS['status']]
+        ])
+
+    return jsonify({'response': "Trip List Created", 'triplist': compiled_data})
+
+
+# get trip information for a future date
 @app.route('/get-future-trips', methods=['GET'])
 @cross_origin()
-def get_future_trip_data():
-    date = request.args.get('date')
-    return trips.get_future_trips(date)
+def get_future_trips(date):
+    compiled_data = []
 
-zones = thr2.Zones()
+    # replace query parameters target date with today's date {{ date }}
+    df = pd.read_sql(constants.FUTURE_DB_QUERY_TRIPS.replace('{{ date }}', date), dbConn)
+    df = df.fillna(0)
+
+    for index, row in df.iterrows():
+        compiled_data.append([
+            0,
+            row[constants.DF_FUTURE_COLS['vehicle']],
+            row[constants.DF_FUTURE_COLS['nodetype']],
+            row[constants.DF_FUTURE_COLS['reqtime']],
+            row[constants.DF_FUTURE_COLS['schtime']],
+            row[constants.DF_FUTURE_COLS['passcount']],
+            row[constants.DF_FUTURE_COLS['name']],
+            float(row[constants.DF_FUTURE_COLS['lat']]),
+            float(row[constants.DF_FUTURE_COLS['long']]),
+            row[constants.DF_FUTURE_COLS['addr']],
+            row[constants.DF_FUTURE_COLS['trvtime']],
+            row[constants.DF_FUTURE_COLS['trvdist']],
+            row[constants.DF_FUTURE_COLS['idletime']],
+            row[constants.DF_FUTURE_COLS['confnum']]
+        ])
+
+    return jsonify({'response': "Trip List Created", 'triplist': compiled_data})
+
+
+# get zone information
 @app.route('/get-zones', methods=['GET'])
 @cross_origin()
-def get_zone_data():
-    return zones.get_zones()
+def get_zones():
+    compiled_data = []
 
-alerts = thr2.Alerts()
+    df = pd.read_sql(constants.DB_ZONES, dbConn)
+    df = df.fillna(0)
+
+    for index, row in df.iterrows():
+        compiled_data.append([
+            row[constants.ZONE_COLS['name']],
+            row[constants.ZONE_COLS['lat']],
+            row[constants.ZONE_COLS['long']],
+            row[constants.ZONE_COLS['ID']],
+            row[constants.ZONE_COLS['color']]
+        ])
+
+    return jsonify({'response': "Zone List Created", 'zones': compiled_data})
+
+
+# get any new alerts from the past minute (polled every minute)
 @app.route('/get-alerts', methods=['GET'])
 @cross_origin()
-def get_alert_data():
-    today = datetime.today()
-    todaydate = today.date()
-    todaytime = datetime.now()
-    return alerts.get_alerts(todaydate, todaytime)
+def get_alerts():
+    # create a time window to filter alerts with
+    date = datetime.today()
+    compiled_data = []
+
+    date = (date - timedelta(minutes=1))
+    dtime = date.strftime('%m/%d/%Y %H:%M:%S')
+
+    # replace query parameters target dateTime with calculated dateTime {{ date }}
+    df = pd.read_sql(constants.DB_ALERTS.replace('{{ date }}', str(dtime)), dbConn)
+    df = df.fillna(0)
+
+    for index, row in df.iterrows():
+        # only allow certain alerts through?
+        words = row[constants.ALERT_COLS['message']].split(" ")
+        first_two = str(words[0]) + " " + str(words[1])
+
+        if first_two == "NO SHOW":
+            pass
+        elif words[0] == "Emergency":
+            pass
+        elif words[0] == "Speeding":
+            pass
+        else:
+            continue
+
+        compiled_data.append([
+            row[constants.ALERT_COLS['message']],
+            row[constants.ALERT_COLS['details']],
+            row[constants.ALERT_COLS['datetime']],
+            row[constants.ALERT_COLS['affiliateID']]
+        ])
+
+    return jsonify({'response': "Alert List Created", 'Alerts': compiled_data})
 
 
-
-t2 = threading.Thread(target=thread2)
-
-
+#define main and add the API endpoints
 def __main__():
     api.add_resource(page, '/api')
-    api.add_resource(get_avl_data, '/get-avl')
-    api.add_resource(get_trip_data, '/get-today-trips')
-    api.add_resource(get_future_trip_data, '/get-future-trips')
-    api.add_resource(get_zone_data, '/get-zones')
-    api.add_resource(get_alert_data, '/get-alerts')
-    t2.start()
-    
-    
+    api.add_resource(get_locations, '/get-avl')
+    api.add_resource(get_today_trips, '/get-today-trips')
+    api.add_resource(get_future_trips, '/get-future-trips')
+    api.add_resource(get_zones, '/get-zones')
+    api.add_resource(get_alerts, '/get-alerts')
+
 
 if __name__ == "__main__":
     app.run(host='192.168.13.91', port='1222', debug=True, threaded=True)

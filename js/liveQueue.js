@@ -1,6 +1,8 @@
-import { resetMapCenter } from './map.js';
+import { setSlider, checkQFooterDisabled } from './doubleTimeSlider.js';
+import { resetMapCenter, setMapZoom, map } from './map.js';
 import { zones } from './zoneList.js';
 import { Trip } from './trip.js';
+import { liveVehicles } from './vehicleList.js';
 
 //ID by vehicle name
 var liveQueueEntries = new Map();
@@ -47,7 +49,9 @@ function initLiveQueue() {
 
 function handleVehicleSelect(vehicleEntry) {
     updateVehicleDropdown(vehicleEntry);
+    checkQFooterDisabled(vehicleEntry);
     activeVehicle.toggleTripListVisibility();
+
     if (activeVehicle.vehicle) {
         activeVehicle.vehicle.hideTripMarkers();
         activeVehicle.vehicle.hidePath();
@@ -61,6 +65,9 @@ function handleVehicleSelect(vehicleEntry) {
     }
     
     activeVehicle = vehicleEntry;
+
+    if (vehicleEntry.vehicle)
+        setSlider(vehicleEntry.vehicle.tripDisplayWindow.getTimeVals());
 }
 
 function handleVehicleSearch(evt) {
@@ -158,6 +165,15 @@ function updateVehicleDropdown(vehicleEntry) {
     }
 }
 
+function updateLiveQueueEntries(vehicle) {
+    let zoneElement = liveQueueEntries.get(vehicle.zone.name);
+
+    liveQueueEntries.set(vehicle.id, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.vehicle, vehicle, zoneElement));
+    liveQueueEntries.get(vehicle.id).populateTripList();
+
+    console.log(vehicle.name + ' added to drop down and map!');
+}
+
 function updateVehicleTripLists() {
     liveQueueEntries.forEach( entry => {
         if(entry.type == VEHICLE_LIST_ENTRY_TYPE.vehicle) {
@@ -219,7 +235,7 @@ class TripListEntry {
         if (!this.parent.tripsElem) return;
 
         this.elem = queueWin.createElement('li');
-        this.elem.setAttribute('class', 'live-triplist-item card-panel collection-item avatar');
+        this.elem.setAttribute('class', 'live-triplist-item card-panel collection-item avatar waves-effect pointer-cursor');
 
         this.elem.tripIcon = queueWin.createElement('i');
         this.elem.tripIcon.setAttribute('class', 'trip-icon material-icons circle');
@@ -235,6 +251,9 @@ class TripListEntry {
         this.elem.tripAdr = queueWin.createElement('p');
         this.elem.tripAdr.setAttribute('class', 'trip-adr truncate');
         this.elem.tripAdr.innerHTML = this.trip.PUadr + ' <i class="material-icons">arrow_forward</i> ' + this.trip.DOadr;
+        this.elem.tripAdr.title = this.trip.PUadr + ' -> ' + this.trip.DOadr;
+
+        this.elem.addEventListener('click', this.#focusTripMarker.bind(this));
 
 
         this.elem.tripTitleBar.appendChild(this.elem.tripTitle);
@@ -309,6 +328,7 @@ class TripListEntry {
         switch(this.trip.status) {
             case ('ATLOCATION'):
                 this.elem.classList.add('green', 'lighten-4', 'semi-transparent');
+                this.elem.classList.remove('pointer-cursor');
                 this.pickedUpStatus = PU_STATUS.none;
                 this.active = false;
 
@@ -319,6 +339,7 @@ class TripListEntry {
             case ('NOSHOWREQ'):
             case ('NOSHOW'):
                 this.elem.classList.add('red', 'lighten-4', 'semi-transparent');
+                this.elem.classList.remove('pointer-cursor');
                 this.pickedUpStatus = PU_STATUS.none;
                 this.active = false;
 
@@ -327,6 +348,7 @@ class TripListEntry {
                 return;
             case ('NONE'):
                 this.elem.classList.add('semi-transparent');
+                this.elem.classList.remove('pointer-cursor');
                 this.pickedUpStatus = PU_STATUS.none;
                 this.active = false;
 
@@ -338,11 +360,27 @@ class TripListEntry {
         }
     }
 
+    #focusTripMarker() {
+        if (this.trip.status !== 'PICKEDUP' && this.trip.status !== 'IRTPU' && this.trip.status !== 'ACCEPTED')
+            return;
+
+        this.parent.vehicle.focusTripMarker(this.trip.confirmation);
+
+        if (this.trip.status === 'PICKEDUP')
+            map.setCenter(this.trip.DOcoords);
+        else
+            map.setCenter(this.trip.PUcoords);
+
+        setMapZoom(17);
+    }
+
     #determineIcon(tripType) {
         switch(tripType) {
             case ('BIDOFFERED'):
-            case ('ACCEPTED'):
             case ('ASSIGNED'):
+            case ('DISPATCHED'):
+                return 'assignment';
+            case ('ACCEPTED'):
             case ('IRTPU'):
                 return 'hail';
             case ('PICKEDUP'):
@@ -382,7 +420,7 @@ class TripListEntry {
 }
 
 class VehicleListEntry {
-    constructor(type = VEHICLE_LIST_ENTRY_TYPE.none, refObj=null) {
+    constructor(type = VEHICLE_LIST_ENTRY_TYPE.none, refObj=null, refZone=null) {
         this.type = type;
         this.fullyInit = false;
 
@@ -390,6 +428,7 @@ class VehicleListEntry {
             case VEHICLE_LIST_ENTRY_TYPE.vehicle:
                 this.vehicle = (refObj) ? refObj : this.#_throw('No Vehicle Specified.');
                 this.name = refObj.name;
+                this.refZone = refZone;
                 this.tripList = new Map();
                 this.passengerCache = 0; 
                 break;
@@ -491,7 +530,11 @@ class VehicleListEntry {
         }
 
         this.fullyInit = true;
-        VEHICLE_LIST.appendChild(this.elem);
+
+        if(this.refZone)
+            refZone.after(this.elem);
+        else
+            VEHICLE_LIST.appendChild(this.elem);
     }
 
     updateTripCount() {
@@ -554,7 +597,6 @@ class VehicleListEntry {
             tempTripsElements.forEach(element => { element.reStyle(); });
             //find the first active element, then set it active.
             tempTripsElements.find(element => element.active)?.setActive();
-
         }
         else 
             this.createEmptyList();
@@ -643,7 +685,6 @@ function handleTripSearchApply() {
 
     searchList.tripList.forEach(trip => {
         tempElem = trip.elem.cloneNode(true);
-        tempElem.classList.add('pointer-cursor');
         tempElem.addEventListener('click', () => { handleVehicleSelect(trip.parent); });
 
         searchList.tripsElem.appendChild(tempElem);
@@ -782,4 +823,4 @@ function handleTripSearchClear() {
     });
 }
 
-export { initLiveQueue, updateVehicleTripLists, handleVehicleSelect, queueWin, liveQueueEntries, activeVehicle, VEHICLE_LIST_ENTRY_TYPE };
+export { initLiveQueue, updateVehicleTripLists, handleVehicleSelect, updateLiveQueueEntries, queueWin, liveQueueEntries, activeVehicle, VEHICLE_LIST_ENTRY_TYPE };

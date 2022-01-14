@@ -141,7 +141,7 @@ body {
   margin-right: -23px;
   overflow: hidden;
   overflow-y: scroll;
-  height: calc(65vh - 10px);
+  height: calc(65vh - 15px);
 }
 
 .paneltriplist {
@@ -433,7 +433,7 @@ div#modalfare {
 }
 
 .queuefooter {
-  height: 60px;
+  height: 75px;
 }
 
 .routetripbutton {
@@ -547,6 +547,7 @@ div#modalfare {
 /* docked */
 .triplist-item {
   height: clamp(75px, 9vh, 9vh);
+
   margin: 3px !important;
 }
 
@@ -832,6 +833,7 @@ div#modalfare {
 
 .live-triplist-item {
     height: clamp(75px, 9vh, 9vh);
+    width:calc(100% - 5px)!important;
     margin: 3px !important;
 }
 
@@ -843,6 +845,7 @@ div#modalfare {
 }
 .live-triplist-item .trip-title-bar {
   display: flex; 
+  line-height: 28px;
   flex-direction: row;
 }
 
@@ -854,8 +857,8 @@ div#modalfare {
 .live-triplist-item .trip-title-bar .trip-eta {
   flex: 0 0 auto;
   flex-wrap: nowrap;
-  font-size: 14px; 
-  line-height: 28px;
+  font-size: 14px;
+  margin-top: 2px; 
   margin-left: auto;
 }
 
@@ -959,7 +962,8 @@ div#modalfare {
 }
 
 #lefttimevalue {
-  margin: 12px 0 0 10%; 
+  margin: 25px 0 0 10%; 
+  font-size: 14px !important;
   transform: translateX(-50%); 
   padding: 0px 10px 0px 10px; 
   border-style: solid;
@@ -969,7 +973,8 @@ div#modalfare {
 }
 
 #righttimevalue {
-  margin: 12px 10% 0 0; 
+  margin: 25px 10% 0 0; 
+  font-size: 14px !important;
   transform: translateX(50%); 
   padding: 0px 10px 0px 10px; 
   border-style: solid; 
@@ -984,4 +989,45 @@ div#modalfare {
 
 .no-margin {
   margin: 0 0 0 0 !important;
+}
+
+.noUi-connect {
+  background: var(--primary-theme);
+}
+.noUi-horizontal .noUi-handle, .noUi-vertical .noUi-handle {
+  background: var(--primary-theme);
+}
+.noUi-target.noUi-horizontal .noUi-tooltip {
+  background-color: var(--primary-theme);
+}
+
+div.noUi-value.noUi-value-horizontal.noUi-value-large {
+  font-size: 14px;
+  color: #CCC;
+}
+
+.alerts-dropdown {
+  border-radius: 21px;
+  width: 185px; 
+  height: 42px; 
+  line-height: 42px; 
+}
+
+.alerts-dropdown-badge {
+  margin-top:10px; 
+  margin-right:5px;
+}
+
+.border-on {
+  border-style: solid;
+  border-radius: 5px;
+  border-width: 2px;
+  border-color: lightgreen;
+}
+
+.border-off {
+  border-style: solid;
+  border-radius: 5px;
+  border-width: 2px;
+  border-color: salmon;
 }

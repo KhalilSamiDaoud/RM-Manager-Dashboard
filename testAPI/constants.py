@@ -1,7 +1,7 @@
 #
 # python constants for ITC-SIM API
 #
-#test
+
 DF_COLS = {
     'vehicle': 9,
     # 'nodetype': 3,
@@ -82,7 +82,7 @@ DB_CONNECT_CRED = 'Driver={Sql Server};Server=192.168.13.91;Database=DispatchMan
 DB_ZONES = 'SELECT * FROM Zones Z WITH (NOLOCK) LEFT OUTER JOIN ZonesVertices V WITH (NOLOCK) on Z.iID = V.zoneID '
 
 # DB_SMART_DEVICE = 'SELECT * FROM SMARTDEVICE'
-DB_SMART_DEVICE = 'SELECT v.iVehicleID [IVEHICLEID],LATITUDE,LONGITUDE,STATE,DIRECTION,NEXTSERVICELATITUDE,NEXTSERVICELONGITUDE,AVLZONE,vColor,iAffiliateID,vSeating,TRIPSIRTDO,vVehicleNo FROM def_Vehicles V WITH (NOLOCK) LEFT OUTER JOIN SMARTDEVICE S WITH (NOLOCK) on V.iVehicleID = S.IVEHICLEID AND v.bActive = 1 '
+DB_SMART_DEVICE = 'SELECT v.iVehicleID [iVehicleID],LATITUDE,LONGITUDE,STATE,DIRECTION,NEXTSERVICELATITUDE,NEXTSERVICELONGITUDE,AVLZONE,vColor,iAffiliateID,vSeating,TRIPSIRTDO,vVehicleNo FROM def_Vehicles V WITH (NOLOCK) LEFT OUTER JOIN SMARTDEVICE S WITH (NOLOCK) on V.iVehicleID = S.IVEHICLEID AND v.bActive = 1 '
 
 DB_STATUS = 'usp_SD_GetTripLoadStatus'
 
@@ -95,7 +95,7 @@ ZONE_LOCATIONS = """
             usp_Zone_GetVertices
             WITH (NOLOCK)
 """
-DB_QUERY_TRIPS = "SELECT * FROM ServiceRequestsOnDemand S WITH (NOLOCK) WHERE S.dtPickupDate > '{{ date }}' and S.dtPickupDate < '{{ date1 }}'"
+DB_QUERY_TRIPS = "SELECT * FROM ServiceRequestsOnDemand S WITH (NOLOCK) WHERE S.dtPickupDate > '{{ date_today }}' and S.dtPickupDate < '{{ date_tomorrow }}'"
 
 # Without SET NOCOUNT ON in the query the whole query will break!!!!
 FUTURE_DB_QUERY_TRIPS =  """

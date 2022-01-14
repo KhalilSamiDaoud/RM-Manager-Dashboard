@@ -53,8 +53,7 @@ function handleZoneFilterSelect() {
     let selectedZones = zoneSelectInstance.getSelectedValues();
 
     if (activeVehicle.vehicle) {
-        activeVehicle.vehicle.hidePath();
-        activeVehicle.vehicle.hideTripMarkers();
+        activeVehicle.vehicle.hide();
     }
 
     if (selectedZones.includes('0')) {
@@ -63,8 +62,7 @@ function handleZoneFilterSelect() {
         });
 
         if(activeVehicle.vehicle) {
-            activeVehicle.vehicle.showPath();
-            activeVehicle.vehicle.showTripMarkers();
+            activeVehicle.vehicle.show();
         }
     }
     else {
@@ -76,8 +74,7 @@ function handleZoneFilterSelect() {
             zones.get(zone).showAllVehicles();
 
             if (zones.get(zone).vehiclesInZone.has(activeVehicle.name)) {
-                activeVehicle.vehicle.showPath();
-                activeVehicle.vehicle.showTripMarkers();
+                activeVehicle.vehicle.show();
             }
         });
     }

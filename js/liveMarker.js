@@ -3,7 +3,7 @@ import { Trip } from './trip.js';
 import { map } from './map.js';
 
 class LiveMarker {
-    constructor(trip) {
+    constructor(trip, ownerVehicle) {
         if (!(trip instanceof Trip)) this.#_throw('No Trip Specified.');
 
         this.name = trip.name;
@@ -13,6 +13,7 @@ class LiveMarker {
         this.DOtime = trip.schDODateTime;
         this.id = trip.confirmation;
 
+        this.ownerVehicle = ownerVehicle;
         this.drawPU = (trip.status != 'PICKEDUP');
 
         this.PUsymbol;
@@ -38,6 +39,8 @@ class LiveMarker {
                     className: 'pickup-label'
                 }
             });
+
+            this.PUsymbol.addListener('click', this.handleMarkerClick.bind(this));
         }
 
         if (this.DOcoords) {
@@ -56,7 +59,13 @@ class LiveMarker {
                     className: 'dropoff-label',
                 }
             });
+
+            this.DOsymbol.addListener('click', this.handleMarkerClick.bind(this));
         }
+    }
+
+    handleMarkerClick() {
+        this.ownerVehicle.focusTripMarker(this.id);
     }
 
     destroy() {

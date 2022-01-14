@@ -5,12 +5,11 @@ import { initClock, startSYSClock, startSIMClock } from './clock.js';
 import { initMap, createVehicleIcon, drawStaticIcons } from './map.js';
 import { liveVehicles, populateRandVehicles, vehicles } from './vehicleList.js';
 import { initCalendar, updateLiveButton } from './calendar.js';
-import { drawMaterial } from './barChart.js';
 import { initLive } from './APIinput.js';
 import { addEvent } from './liveLog.js';
 import { initLiveQueue } from './liveQueue.js';
-import { initZoneSelect } from './zoneList.js';
 import { initSettings } from './settings.js';
+import { initAlerts } from './alerts.js';
 
 let currMode = INIT_MODE.none;
 let prevInitalized = false;
@@ -22,6 +21,7 @@ function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COOR
     initClock(startTime);
     initSettings();
     initMap(coords);
+    initAlerts();
 
     // if (prevInitalized) {
     //     clearTripTabs();
@@ -66,8 +66,8 @@ function initSimulation(mode = INIT_MODE.none, startTime = 0, coords = INIT_COOR
         liveVehicles.forEach(vehicle => {
             vehicle.createLiveVehicle();
             vehicle.updateInfoBox();
-            vehicle.updateVehiclePath();
             vehicle.createMarkers();
+            vehicle.updateVehiclePath();
         });
     }
 

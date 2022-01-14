@@ -1,4 +1,4 @@
-import { vehicles, liveVehicles, createVehicle, createLiveVehicle, clearVehicles, sortVehicleList, updateVehicleInformation } from './vehicleList.js';
+import { vehicles, liveVehicles, createVehicle, createLiveVehicle, clearVehicles, sortVehicleList, updateVehicleInformation, sortLiveVehicleTrips } from './vehicleList.js';
 import { parseTime } from './utils.js';
 import { calcWaitTime } from './simMath.js';
 import { createZone } from './zoneList.js';
@@ -153,6 +153,8 @@ function getLiveTripsFromJSON(records, fileColumns) {
             if (new Date(records[i][fileColumns.scheduledPUTime]).toLocaleDateString() === CURR_DATE_STRING)
                 liveVehicles.get(records[i][fileColumns.vehID]).addTrip(new Trip({liveRecord: records[i]}));
     }
+
+    sortLiveVehicleTrips();
 }
 
 function getLiveAlertsFromJSON(records, fileColumns) {
@@ -180,25 +182,35 @@ function updateLiveTripsFromJSON(records, fileColumns) {
     updateVehicleInformation();
 }
 
-//this function limits the amount of vehicle updates /w throttle timer
 async function updateLiveVehiclesFromJSON(records, fileColumns) {
     let vehicleRef;
-    // let throttleCap = (records.length > 10) ? Math.ceil(records.length / 4) : records.length;
-    // let throttleCount = 0;
+    let tempParams;
 
     for (let i = 0; i < records.length; i++) {
-    //     ++throttleCount;
-    //     if(throttleCount == throttleCap) {
-    //         throttleCount = 0;
-    //         await timer(3000);
-    //     }
         if (liveVehicles.has(records[i][fileColumns.vehID])) {
             vehicleRef = liveVehicles.get(records[i][fileColumns.vehID]);
             vehicleRef.updateLoad(records[i][fileColumns.vehLoad]);
             vehicleRef.updateMarker({ lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
         }
-        else
-            createLiveVehicle(records[i][fileColumns.vehID], records[i][fileColumns.vehCapacity], records[i][fileColumns.vehLoad], { lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
+        else {
+            tempParams = {
+                id: records[i][fileColumns.vehID],
+                name: records[i][fileColumns.vehName],
+                maxCapacity: records[i][fileColumns.vehCapacity],
+                currCapacity: records[i][fileColumns.vehLoad],
+                zoneID: records[i][fileColumns.vehZone],
+                heading: records[i][fileColumns.vehHeading],
+                color: records[i][fileColumns.vehColor],
+                type: VEHICLE_TYPE.sedan,
+                currPos: {
+                    lat: records[i][fileColumns.vehLat],
+                    lng: records[i][fileColumns.vehLng]
+                }
+            };
+
+            createLiveVehicle(tempParams);
+            updateLiveQueueEntries(liveVehicles.get(tempParams.id));
+        }
     }
 }
 
