@@ -66,8 +66,9 @@ function handleSliderUpdate(values, handle = -1) {
 function checkQFooterDisabled(newSelection) {
     if(newSelection?.vehicle)
         QUEUE_FOOTER.classList.remove('disable-control');
-    else
+    else {
         QUEUE_FOOTER.classList.add('disable-control');
+    }
 }
 
 function formatPipTime(value) {

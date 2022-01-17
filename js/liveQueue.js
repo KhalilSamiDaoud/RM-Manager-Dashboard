@@ -1,8 +1,7 @@
 import { setSlider, checkQFooterDisabled } from './doubleTimeSlider.js';
-import { resetMapCenter, setMapZoom, map } from './map.js';
+import { resetMapCenter } from './map.js';
 import { zones } from './zoneList.js';
 import { Trip } from './trip.js';
-import { liveVehicles } from './vehicleList.js';
 
 //ID by vehicle name
 var liveQueueEntries = new Map();
@@ -50,20 +49,18 @@ function initLiveQueue() {
 function handleVehicleSelect(vehicleEntry) {
     updateVehicleDropdown(vehicleEntry);
     checkQFooterDisabled(vehicleEntry);
-    activeVehicle.toggleTripListVisibility();
 
+    activeVehicle.toggleTripListVisibility();
     if (activeVehicle.vehicle) {
-        activeVehicle.vehicle.hideTripMarkers();
-        activeVehicle.vehicle.hidePath();
+        activeVehicle.vehicle.hide();
     }
 
     vehicleEntry.toggleTripListVisibility();
     if (vehicleEntry.vehicle) {
-        vehicleEntry.vehicle.showTripMarkers();
-        vehicleEntry.vehicle.showPath();
+        vehicleEntry.vehicle.show();
         vehicleEntry.vehicle.focusSelf();
     }
-    
+
     activeVehicle = vehicleEntry;
 
     if (vehicleEntry.vehicle)
@@ -168,10 +165,15 @@ function updateVehicleDropdown(vehicleEntry) {
 function updateLiveQueueEntries(vehicle) {
     let zoneElement = liveQueueEntries.get(vehicle.zone.name);
 
+    if(!zoneElement) {
+        liveQueueEntries.set(vehicle.zone.name, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.zone, vehicle.zone));
+        liveQueueEntries.set(vehicle.zone.name + '-divider', new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.divider));
+
+        zoneElement = liveQueueEntries.get(vehicle.zone.name);
+    }
+
     liveQueueEntries.set(vehicle.id, new VehicleListEntry(VEHICLE_LIST_ENTRY_TYPE.vehicle, vehicle, zoneElement));
     liveQueueEntries.get(vehicle.id).populateTripList();
-
-    console.log(vehicle.name + ' added to drop down and map!');
 }
 
 function updateVehicleTripLists() {
@@ -253,7 +255,7 @@ class TripListEntry {
         this.elem.tripAdr.innerHTML = this.trip.PUadr + ' <i class="material-icons">arrow_forward</i> ' + this.trip.DOadr;
         this.elem.tripAdr.title = this.trip.PUadr + ' -> ' + this.trip.DOadr;
 
-        this.elem.addEventListener('click', this.#focusTripMarker.bind(this));
+        this.elem.addEventListener('click', this.#focusMarker.bind(this));
 
 
         this.elem.tripTitleBar.appendChild(this.elem.tripTitle);
@@ -360,18 +362,11 @@ class TripListEntry {
         }
     }
 
-    #focusTripMarker() {
+    #focusMarker() {
         if (this.trip.status !== 'PICKEDUP' && this.trip.status !== 'IRTPU' && this.trip.status !== 'ACCEPTED')
             return;
 
         this.parent.vehicle.focusTripMarker(this.trip.confirmation);
-
-        if (this.trip.status === 'PICKEDUP')
-            map.setCenter(this.trip.DOcoords);
-        else
-            map.setCenter(this.trip.PUcoords);
-
-        setMapZoom(17);
     }
 
     #determineIcon(tripType) {
@@ -531,8 +526,8 @@ class VehicleListEntry {
 
         this.fullyInit = true;
 
-        if(this.refZone)
-            refZone.after(this.elem);
+        if (this.refZone)
+            this.refZone.elem.after(this.elem);
         else
             VEHICLE_LIST.appendChild(this.elem);
     }
@@ -639,6 +634,8 @@ class VehicleListEntry {
                 emptyElem.textNode.setAttribute('style', 'margin:auto;');
                 if (this.type == VEHICLE_LIST_ENTRY_TYPE.search)
                     emptyElem.textNode.innerText = 'No trips found.';
+                else if (this.type == VEHICLE_LIST_ENTRY_TYPE.general)
+                    emptyElem.textNode.innerText = 'No active trips.';
                 else
                     emptyElem.textNode.innerText = 'No assigned trips.';
 

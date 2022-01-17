@@ -1,10 +1,10 @@
 import { vehicles, liveVehicles, createVehicle, createLiveVehicle, clearVehicles, sortVehicleList, updateVehicleInformation, sortLiveVehicleTrips } from './vehicleList.js';
-import { parseTime } from './utils.js';
+import { updateLiveQueueEntries } from './liveQueue.js';
+import { TRIP_TYPE, VEHICLE_TYPE } from './constants.js';
 import { calcWaitTime } from './simMath.js';
 import { createZone } from './zoneList.js';
-import { TRIP_TYPE, VEHICLE_TYPE } from './constants.js';
 import { addAPIEvent } from './liveLog.js';
-
+import { parseTime } from './utils.js';
 import { Trip } from './trip.js';
 
 const CURR_DATE = new Date();
@@ -190,7 +190,10 @@ async function updateLiveVehiclesFromJSON(records, fileColumns) {
         if (liveVehicles.has(records[i][fileColumns.vehID])) {
             vehicleRef = liveVehicles.get(records[i][fileColumns.vehID]);
             vehicleRef.updateLoad(records[i][fileColumns.vehLoad]);
-            vehicleRef.updateMarker({ lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] });
+            vehicleRef.updateMarker(
+                { lat: records[i][fileColumns.vehLat], lng: records[i][fileColumns.vehLng] }, 
+                records[i][fileColumns.vehHeading]
+            );
         }
         else {
             tempParams = {

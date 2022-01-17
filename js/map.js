@@ -238,7 +238,16 @@ function initMap(area) {
     zoneControl(zoneControlDiv);
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(zoneControlDiv);
 
-    setTimeout(() => { $('.tooltipped').tooltip(); initZoneSelect(); }, 1000);
+    //custom event to determine when gmap controls have loaded
+    google.maps.event.addListener(map, 'tilesloaded', function () {
+        let controlInterval = setInterval( () => {
+            if ($('.gmap-zone-control').length > 0) {
+                $('.tooltipped').tooltip(); 
+                initZoneSelect();
+                clearInterval(controlInterval);
+            }
+        }, 250);
+    });
 }
 
 function resetMapCenter() {

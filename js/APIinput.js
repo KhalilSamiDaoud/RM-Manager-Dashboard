@@ -37,7 +37,7 @@ async function initLive() {
         .then(data => {
             if (data.zones.length == 0) {
                 //initEvent(INIT_EVENT_TYPE.AVLempty);
-                throw new Error('DASHBOARD-API Initialization Error: No Zone Data');
+                console.warn('DASHBOARD-API Initialization Error: No Zone Data');
             }
 
             stopSimulation();
@@ -50,7 +50,7 @@ async function initLive() {
                 .then(data => {
                     if (data.avl.length == 0) {
                         //initEvent(INIT_EVENT_TYPE.AVLempty);
-                        throw new Error('DASHBOARD-API Initialization Error: No Vehicle Data');
+                        console.warn('DASHBOARD-API Initialization Error: No Vehicle Data');
                     }
 
                     vehicleCache = data.avl;
@@ -61,7 +61,7 @@ async function initLive() {
                         .then(data => {
                             if (data.triplist.length == 0) {
                                 //initEvent(INIT_EVENT_TYPE.APIempty);
-                                throw new Error('DASHBOARD-API Initialization Error: No Trip Data');
+                                console.warn('DASHBOARD-API Initialization Error: No Trip Data');
                             }
 
                             tripListCache = trimStreetNames(data.triplist, API_COLUMNS_LIVE_TRIPS);

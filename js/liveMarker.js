@@ -6,6 +6,8 @@ class LiveMarker {
     constructor(trip, ownerVehicle) {
         if (!(trip instanceof Trip)) this.#_throw('No Trip Specified.');
 
+        this.trip = trip;
+
         this.name = trip.name;
         this.PUcoords = trip.PUcoords;
         this.DOcoords = trip.DOcoords;
@@ -18,6 +20,16 @@ class LiveMarker {
 
         this.PUsymbol;
         this.DOsymbol;
+
+        this.infoContent =
+            '<div class="zone-info"><b>' + this.name + '</b>' +
+            '<div class="divider"></div>' +
+            '<p>Vehicle: #' + this.ownerVehicle.name + ' (' + this.ownerVehicle.type.name + ')</p>' +
+            '<p>PU Adr: ' + this.trip.PUadr + '</p>' +
+            '<p>DO Adr: ' + this.trip.PUadr + '</p>' +
+            '<div class="divider"></div>' +
+            '<p>ETA: --- </p>' +
+            '</div>';
 
         this.createPersonMarkers();
     }
@@ -34,7 +46,7 @@ class LiveMarker {
                     fixedRotation: false,
                 },
                 label: {
-                    text: this.name + ' [' + this.PUtime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) + ']',
+                    text: this.name + ' [' + this.PUtime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ']',
                     color: '#fff',
                     className: 'pickup-label'
                 }
@@ -60,24 +72,30 @@ class LiveMarker {
                 }
             });
 
-            this.DOsymbol.addListener('click', this.handleMarkerClick.bind(this));
+            this.DOsymbol.addListener('click', this.#handleMarkerClick.bind(this));
         }
+
+        this.infoBox = new google.maps.InfoWindow({
+            content: this.infoContent,
+            position: (this.drawPU) ? this.PUsymbol.getPosition() : this.DOsymbol.getPosition(),
+            pixelOffset: new google.maps.Size(0, -25)
+        });
     }
 
-    handleMarkerClick() {
+    #handleMarkerClick() {
         this.ownerVehicle.focusTripMarker(this.id);
     }
 
     destroy() {
         if (this.DOsymbol)
             this.DOsymbol.setMap(null);
-        
+
         if (this.PUsymbol)
             this.PUsymbol.setMap(null);
     }
 
     updateToPickedUp() {
-        if(this.PUsymbol) {
+        if (this.PUsymbol) {
             this.PUsymbol.setMap(null);
             this.PUsymbol = null;
             this.drawPU = false;
@@ -112,6 +130,9 @@ class LiveMarker {
     hideMarkers() {
         this.hidePUMarker();
         this.hideDOMarker();
+
+        if (this.infoBox.getMap())
+            this.infoBox.close();
     }
 
     #_throw(err) { throw new Error(err); }

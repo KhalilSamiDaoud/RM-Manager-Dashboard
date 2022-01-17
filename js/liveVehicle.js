@@ -369,10 +369,17 @@ class LiveVehicle {
             else {
                 marker.showMarkers();
 
-                if(this.assignedTrips.get(markerID).status !== 'PICKEDUP')
+                if(this.assignedTrips.get(markerID).status !== 'PICKEDUP') {
                     this.path.setPath([marker.PUcoords, marker.DOcoords]);
-                else
+                    this.#resizeMapToFitMarkers(marker);
+                }
+                else {
                     this.path.setPath([this.currPos, marker.DOcoords]);
+                    map.setCenter(marker.DOcoords);
+                    setMapZoom(17);
+                }
+
+                marker.infoBox.open(map);
             }
         });
     }
@@ -395,6 +402,15 @@ class LiveVehicle {
 
         this.showPath();
         this.showTripMarkers();
+    }
+
+    #resizeMapToFitMarkers(marker) {
+        let bounds = new google.maps.LatLngBounds();
+
+        bounds.extend(marker.PUcoords);
+        bounds.extend(marker.DOcoords);
+
+        map.fitBounds(bounds);
     }
 
     #determineIsOnTime(trip) {
