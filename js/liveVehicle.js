@@ -1,7 +1,7 @@
 import { handleVehicleSelect, liveQueueEntries, activeVehicle } from './liveQueue.js';
 import { isColor, timeToString } from './utils.js';
 import { map, setMapZoom } from './map.js';
-import { DLINE_SYMBOL } from './constants.js';
+import { ARROW_LINE_SYMBOL } from './constants.js';
 import { liveVehicles } from './vehicleList.js';
 import { LiveMarker } from './liveMarker.js';
 import { zones } from './zoneList.js';
@@ -27,7 +27,9 @@ class LiveVehicle {
         this.assignedTrips = new Map();
         //ID by confirmation num
         this.tripMarkers = new Map();
+
         this.isFocusingMarker = false;
+        this.focusedMarker;
 
         this.tripDisplayWindow = {
             lower: { 
@@ -59,7 +61,7 @@ class LiveVehicle {
             strokeOpacity: 0,
             icons: [
                 {
-                    icon: DLINE_SYMBOL,
+                    icon: ARROW_LINE_SYMBOL,
                     offset: '0%',
                     repeat: '15px'
                 }]
@@ -125,7 +127,7 @@ class LiveVehicle {
     }
 
     handleClick() {
-        this.isFocusingMarker = false;
+        this.unfocusTripMarker();
         this.updateVehiclePath();
         this.infoBox.open(map);
 
@@ -225,7 +227,7 @@ class LiveVehicle {
     updateTimedMarkers(autoUpdate=false) {
         if(autoUpdate && this.isFocusingMarker) return;
 
-        this.isFocusingMarker = false;
+        this.unfocusTripMarker();
 
         this.hidePath();
         this.hideTripMarkers();
@@ -298,6 +300,8 @@ class LiveVehicle {
 
     hideMarker() {
         this.symbol.setMap(null);
+
+        this.unfocusTripMarker();
     }
 
     hideTripMarkers() {
@@ -361,44 +365,73 @@ class LiveVehicle {
     }
 
     focusTripMarker(markerID) {
+        if (this.isFocusingMarker)
+            this.unfocusTripMarker();
+
         this.isFocusingMarker = true;
+        this.setPathOpaque();
 
         this.tripMarkers.forEach(marker => {
             if(marker.id != markerID)
-                marker.hideMarkers();
+                marker.setOpaque();
             else {
-                marker.showMarkers();
+                this.focusedMarker = marker;
+
+                marker.setSolid();
+                marker.showPath();
 
                 if(this.assignedTrips.get(markerID).status !== 'PICKEDUP') {
-                    this.path.setPath([marker.PUcoords, marker.DOcoords]);
                     this.#resizeMapToFitMarkers(marker);
                 }
                 else {
-                    this.path.setPath([this.currPos, marker.DOcoords]);
                     map.setCenter(marker.DOcoords);
                     setMapZoom(17);
                 }
-
-                marker.infoBox.open(map);
             }
         });
     }
 
+    unfocusTripMarker() {
+        if (!this.isFocusingMarker) return;
+
+        this.focusedMarker.hidePath();
+        this.focusedMarker = null;
+        this.isFocusingMarker = false;
+
+        this.tripMarkers.forEach( marker => {
+            marker.setSolid();
+        });
+
+        this.setPathSolid();
+    }
+
+    setPathOpaque() {
+        const icons = this.path.get("icons");
+
+        icons[0].icon.strokeOpacity = 0.33;
+        icons[0].icon.fillOpacity = 0.33;
+        this.path.setOptions({ icons: icons });
+    }
+
+    setPathSolid() {
+        const icons = this.path.get("icons");
+
+        icons[0].icon.strokeOpacity = 1;
+        icons[0].icon.fillOpacity = 1;
+        this.path.setOptions({ icons: icons });
+    }
+
     hide() {
-        if (this.isFocusingMarker) {
-            this.isFocusingMarker = false;
-            this.updateVehiclePath();
-        }
+        if (this.isFocusingMarker)
+            this.unfocusTripMarker();
 
         this.hidePath();
         this.hideTripMarkers();
     }
 
     show() {
-        if (this.isFocusingMarker) {
-            this.isFocusingMarker = false;
-            this.updateVehiclePath();
-        }
+        if (this.isFocusingMarker)
+            this.unfocusTripMarker();
 
         this.showPath();
         this.showTripMarkers();
@@ -406,11 +439,13 @@ class LiveVehicle {
 
     #resizeMapToFitMarkers(marker) {
         let bounds = new google.maps.LatLngBounds();
+        let prevZoom = map.getZoom();
 
         bounds.extend(marker.PUcoords);
         bounds.extend(marker.DOcoords);
 
         map.fitBounds(bounds);
+        map.setZoom(prevZoom);
     }
 
     #determineIsOnTime(trip) {

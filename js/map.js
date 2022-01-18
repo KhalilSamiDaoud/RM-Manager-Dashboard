@@ -1,4 +1,4 @@
-import { DLINE_SYMBOL, stopSVG, depotSVG, dropoffSVG, pickupSVG } from './constants.js';
+import { ARROW_LINE_SYMBOL, stopSVG, depotSVG, dropoffSVG, pickupSVG } from './constants.js';
 import { globalConfigVars } from './configuration.js';
 import { isStatsPoped } from './statisticsList.js';
 import { initZoneSelect } from './zoneList.js';
@@ -9,7 +9,7 @@ import { isLogPoped } from './log.js';
 var map, mapZoom, mapCenter;
 
 let trafficLayer;
-let allowZoomModification = true;
+let allowZoomModification = false;
 
 function initMap(area) {
     mapCenter = area;
@@ -239,15 +239,18 @@ function initMap(area) {
     map.controls[google.maps.ControlPosition.TOP_LEFT].push(zoneControlDiv);
 
     //custom event to determine when gmap controls have loaded
-    google.maps.event.addListener(map, 'tilesloaded', function () {
-        let controlInterval = setInterval( () => {
-            if ($('.gmap-zone-control').length > 0) {
-                $('.tooltipped').tooltip(); 
-                initZoneSelect();
-                clearInterval(controlInterval);
-            }
-        }, 250);
-    });
+    google.maps.event.addListener(map, 'tilesloaded', checkMapLoaded);
+}
+
+function checkMapLoaded() {
+    let controlInterval = setInterval(() => {
+        if ($('.gmap-zone-control').length > 0) {
+            google.maps.event.clearListeners(map, 'tilesloaded');
+            $('.tooltipped').tooltip();
+            initZoneSelect();
+            clearInterval(controlInterval);
+        }
+    }, 250);
 }
 
 function resetMapCenter() {
@@ -413,7 +416,7 @@ function drawTripPath(vehicle) {
             strokeOpacity: 0,
             icons: [
                 {
-                    icon: DLINE_SYMBOL,
+                    icon: ARROW_LINE_SYMBOL,
                     offset: '0%',
                     repeat: '20px'
                 },
@@ -506,8 +509,8 @@ function zoomControl(controlDiv) {
     controlDiv.appendChild(controlUI);
 
     const controlText = document.createElement("div");
-    controlUI.classList.add('gmap-centericon', 'border-on');
-    controlText.innerHTML = '<i class="material-icons white-text" style="font-size:40px;">zoom_in</i>';
+    controlUI.classList.add('gmap-centericon', 'border-off');
+    controlText.innerHTML = '<i class="material-icons white-text" style="font-size:40px;">lock_outline</i>';
     controlUI.appendChild(controlText);
 
     controlUI.addEventListener("click", () => {

@@ -1,4 +1,4 @@
-import { dropoffSVG, pickupSVG, } from './constants.js';
+import { dropoffSVG, pickupSVG } from './constants.js';
 import { Trip } from './trip.js';
 import { map } from './map.js';
 
@@ -11,12 +11,13 @@ class LiveMarker {
         this.name = trip.name;
         this.PUcoords = trip.PUcoords;
         this.DOcoords = trip.DOcoords;
-        this.PUtime = trip.schPUDateTime;
-        this.DOtime = trip.schDODateTime;
+        this.PUtime = trip.forcastedPUTime;
+        this.DOtime = trip.forcastedDOTime;
         this.id = trip.confirmation;
 
         this.ownerVehicle = ownerVehicle;
         this.drawPU = (trip.status != 'PICKEDUP');
+        this.eventManager = new AbortController();
 
         this.PUsymbol;
         this.DOsymbol;
@@ -26,10 +27,17 @@ class LiveMarker {
             '<div class="divider"></div>' +
             '<p>Vehicle: #' + this.ownerVehicle.name + ' (' + this.ownerVehicle.type.name + ')</p>' +
             '<p>PU Adr: ' + this.trip.PUadr + '</p>' +
-            '<p>DO Adr: ' + this.trip.PUadr + '</p>' +
+            '<p>DO Adr: ' + this.trip.DOadr + '</p>' +
             '<div class="divider"></div>' +
-            '<p>ETA: --- </p>' +
+            '<p>PU ETA: ' + this.trip.forcastedPUTime + '</p>' +
+            '<p>DO ETA: ' + this.trip.forcastedDOTime + '</p>' +
             '</div>';
+
+        this.path = new google.maps.Polyline({
+            path: (this.drawPU) ? [this.PUcoords, this.DOcoords] : [this.ownerVehicle.currPos, this.DOcoords],
+            strokeOpacity: 1,
+            scale: 2
+        });
 
         this.createPersonMarkers();
     }
@@ -46,13 +54,13 @@ class LiveMarker {
                     fixedRotation: false,
                 },
                 label: {
-                    text: this.name + ' [' + this.PUtime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ']',
+                    text: this.name + ' [' + this.PUtime + ']',
                     color: '#fff',
                     className: 'pickup-label'
                 }
             });
 
-            this.PUsymbol.addListener('click', this.handleMarkerClick.bind(this));
+            this.PUsymbol.addListener('click', this.#handleMarkerClick.bind(this), { signal: this.eventManager.signal });
         }
 
         if (this.DOcoords) {
@@ -66,13 +74,13 @@ class LiveMarker {
                     fixedRotation: false
                 },
                 label: {
-                    text: this.name + ' [' + this.DOtime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ']',
+                    text: this.name + ' [' + this.DOtime + ']',
                     color: '#ffffff',
                     className: 'dropoff-label',
                 }
             });
 
-            this.DOsymbol.addListener('click', this.#handleMarkerClick.bind(this));
+            this.DOsymbol.addListener('click', this.#handleMarkerClick.bind(this), { signal: this.eventManager.signal });
         }
 
         this.infoBox = new google.maps.InfoWindow({
@@ -84,6 +92,7 @@ class LiveMarker {
 
     #handleMarkerClick() {
         this.ownerVehicle.focusTripMarker(this.id);
+        this.infoBox.open(map);
     }
 
     destroy() {
@@ -92,6 +101,11 @@ class LiveMarker {
 
         if (this.PUsymbol)
             this.PUsymbol.setMap(null);
+
+        if (this.path)
+            this.path.setMap(null);
+
+        this.eventManager.abort();
     }
 
     updateToPickedUp() {
@@ -99,6 +113,10 @@ class LiveMarker {
             this.PUsymbol.setMap(null);
             this.PUsymbol = null;
             this.drawPU = false;
+        }
+        if (this.path) {
+            this.path.setMap(null);
+            this.path = null;
         }
     }
 
@@ -122,9 +140,23 @@ class LiveMarker {
             this.DOsymbol.setMap(null);
     }
 
+    showPath() {
+        if(this.path)
+            this.path.setMap(map);
+    }
+
+    hidePath() {
+        if(this.path)
+            this.path.setMap(null);
+    }
+
     showMarkers() {
         this.showPUMarker();
         this.showDOMarker();
+
+        if (this.ownerVehicle.isFocusingMarker)
+            if (this.ownerVehicle.focusedMarker.trip.confirmation === this.trip.confirmation)
+                this.path.setMap(map);
     }
 
     hideMarkers() {
@@ -133,6 +165,33 @@ class LiveMarker {
 
         if (this.infoBox.getMap())
             this.infoBox.close();
+        
+        if (this.path)
+            this.path.setMap(null);
+    }
+
+    setOpaque() {
+        if (this.PUsymbol) {
+            this.PUsymbol.setOpacity(0.66);
+            this.PUsymbol.setZIndex(0);
+        }
+        if (this.DOsymbol) {
+            this.DOsymbol.setOpacity(0.66);
+            this.DOsymbol.setZIndex(0);
+        }
+        if (this.infoBox.getMap())
+            this.infoBox.close();
+    }
+
+    setSolid() {
+        if (this.PUsymbol) {
+            this.PUsymbol.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
+            this.PUsymbol.setOpacity(1);
+        }
+        if (this.DOsymbol) {
+            this.DOsymbol.setZIndex(google.maps.Marker.MAX_ZINDEX + 1);
+            this.DOsymbol.setOpacity(1);
+        }
     }
 
     #_throw(err) { throw new Error(err); }

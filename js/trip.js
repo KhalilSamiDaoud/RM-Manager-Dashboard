@@ -53,13 +53,21 @@ class Trip {
             this.phoneNum = trip[API_COLUMNS_LIVE_TRIPS.phoneNum];
             this.travelTime = trip[API_COLUMNS_LIVE_TRIPS.estTime];
             this.passengers = trip[API_COLUMNS_LIVE_TRIPS.passengers];
+            this.wheelChairs = trip[API_COLUMNS_LIVE_TRIPS.wheelchairs];
             this.distance = trip[API_COLUMNS_LIVE_TRIPS.estDistance];
             this.confirmation = trip[API_COLUMNS_LIVE_TRIPS.confirmationNum];
             this.status = trip[API_COLUMNS_LIVE_TRIPS.status];
+            this.timeStatus = trip[API_COLUMNS_LIVE_TRIPS.timeStatus];
 
             this.schPUDateTime = new Date(trip[API_COLUMNS_LIVE_TRIPS.scheduledPUTime].replace('GMT', 'EST'));
             this.schPUTime = this.schPUDateTime.toLocaleTimeString([], { 
                 hour: '2-digit', 
+                minute: '2-digit'
+            });
+
+            this.forcastedPUDateTime = new Date(trip[API_COLUMNS_LIVE_TRIPS.forcastedPUTime].replace('GMT', 'EST'));
+            this.forcastedPUTime = this.forcastedPUDateTime.toLocaleTimeString([], {
+                hour: '2-digit',
                 minute: '2-digit'
             });
 
@@ -69,10 +77,16 @@ class Trip {
                 minute: '2-digit'
             });
 
+            this.forcastedDODateTime = new Date(trip[API_COLUMNS_LIVE_TRIPS.forcastedDOTime].replace('GMT', 'EST'));
+            this.forcastedDOTime = this.forcastedDODateTime.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
             this.active = this.#determineActive(this.status);
         }
         catch(err) {
-            this._throw('Invalid Live record: ' + err);
+            this.#_throw('Invalid Live record: ' + err);
         }
     }
 
