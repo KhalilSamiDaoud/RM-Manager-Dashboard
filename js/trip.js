@@ -46,7 +46,7 @@ class Trip {
                 lng: trip[API_COLUMNS_LIVE_TRIPS.DOlng]
             };
 
-            this.vehicle = trip[API_COLUMNS_LIVE_TRIPS.vehNum];
+            this.vehicle = trip[API_COLUMNS_LIVE_TRIPS.vehID];
             this.name = trip[API_COLUMNS_LIVE_TRIPS.name];
             this.PUadr = trip[API_COLUMNS_LIVE_TRIPS.PUadr];
             this.DOadr = trip[API_COLUMNS_LIVE_TRIPS.DOadr];
@@ -58,6 +58,18 @@ class Trip {
             this.confirmation = trip[API_COLUMNS_LIVE_TRIPS.confirmationNum];
             this.status = trip[API_COLUMNS_LIVE_TRIPS.status];
             this.timeStatus = trip[API_COLUMNS_LIVE_TRIPS.timeStatus];
+
+            this.requestDateTime = new Date(trip[API_COLUMNS_LIVE_TRIPS.PUdate].replace('GMT', 'EST'));
+            this.requestedTime = this.requestDateTime.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            this.appointmentDateime = (trip[API_COLUMNS_LIVE_TRIPS.DOapptTime]) ? new Date(trip[API_COLUMNS_LIVE_TRIPS.PUdate].replace('GMT', 'EST')) : null;
+            this.appointmentTime = (this.appointmentDateime) ? this.appointmentDateime.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : 'N/A';
 
             this.schPUDateTime = new Date(trip[API_COLUMNS_LIVE_TRIPS.scheduledPUTime].replace('GMT', 'EST'));
             this.schPUTime = this.schPUDateTime.toLocaleTimeString([], { 

@@ -172,11 +172,11 @@ class LiveMarker {
 
     setOpaque() {
         if (this.PUsymbol) {
-            this.PUsymbol.setOpacity(0.66);
+            this.PUsymbol.setOpacity(0.4);
             this.PUsymbol.setZIndex(0);
         }
         if (this.DOsymbol) {
-            this.DOsymbol.setOpacity(0.66);
+            this.DOsymbol.setOpacity(0.4);
             this.DOsymbol.setZIndex(0);
         }
         if (this.infoBox.getMap())

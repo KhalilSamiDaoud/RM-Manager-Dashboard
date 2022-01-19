@@ -1,4 +1,5 @@
 import { PU_STATUS, queueWin } from './liveQueue.js';
+import { addDragWindow } from './dragWindow.js';
 import { Trip } from './trip.js';
 
 //Only accepets Instances of 'Trip' Object! (see trip.js)
@@ -21,6 +22,7 @@ class TripListEntry {
 
         this.elem = queueWin.createElement('li');
         this.elem.setAttribute('class', 'live-triplist-item card-panel collection-item avatar waves-effect pointer-cursor');
+        this.elem.addEventListener('click', this.#focusMarker.bind(this));
 
         this.elem.tripIcon = queueWin.createElement('i');
         this.elem.tripIcon.setAttribute('class', 'trip-icon material-icons circle');
@@ -30,16 +32,14 @@ class TripListEntry {
         this.elem.tripTitleBar.setAttribute('class', 'trip-title-bar');
 
         this.elem.tripTitle = queueWin.createElement('span');
-        this.elem.tripTitle.setAttribute('class', 'trip-title truncate');
+        this.elem.tripTitle.setAttribute('class', 'trip-title truncate link-text');
         this.elem.tripTitle.innerText = this.trip.name;
+        this.elem.tripTitle.addEventListener('click', this.handlePersonSelect.bind(this));
 
         this.elem.tripAdr = queueWin.createElement('p');
         this.elem.tripAdr.setAttribute('class', 'trip-adr truncate');
         this.elem.tripAdr.innerHTML = this.trip.PUadr + ' <i class="material-icons">arrow_forward</i> ' + this.trip.DOadr;
         this.elem.tripAdr.title = this.trip.PUadr + ' -> ' + this.trip.DOadr;
-
-        this.elem.addEventListener('click', this.#focusMarker.bind(this));
-
 
         this.elem.tripTitleBar.appendChild(this.elem.tripTitle);
         this.elem.appendChild(this.elem.tripIcon);
@@ -130,6 +130,11 @@ class TripListEntry {
             default:
                 return;
         }
+    }
+
+    handlePersonSelect(e) {
+        addDragWindow(this.trip),
+        e.stopPropagation();
     }
 
     #focusMarker() {

@@ -196,6 +196,7 @@ function updateActiveTripsList() {
                     tempElem = tripEntry.elem.cloneNode(true);
                     tempElem.classList.add('pointer-cursor');
                     tempElem.addEventListener('click', () => { handleVehicleSelect(tripEntry.parent)});
+                    tempElem.getElementsByTagName('span')[0].classList.remove('link-text');
 
                     activeTripsList.tripList.set(tripEntry.trip.confirmation, tripEntry);
                     activeTripsList.tripsElem.appendChild(tempElem);
@@ -247,6 +248,7 @@ function handleTripSearchApply() {
     searchList.tripList.forEach(trip => {
         tempElem = trip.elem.cloneNode(true);
         tempElem.addEventListener('click', () => { handleVehicleSelect(trip.parent); });
+        tempElem.getElementsByTagName('span')[0].classList.remove('link-text');
 
         searchList.tripsElem.appendChild(tempElem);
     });

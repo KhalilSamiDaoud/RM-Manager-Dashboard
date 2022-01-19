@@ -27,7 +27,6 @@ class LiveVehicle {
         this.assignedTrips = new Map();
         //ID by confirmation num
         this.tripMarkers = new Map();
-
         this.isFocusingMarker = false;
         this.focusedMarker;
 
@@ -98,6 +97,7 @@ class LiveVehicle {
             duration: 30000,
             map: map,
         });
+        this.symbol.setZIndex(google.maps.Marker.MAX_ZINDEX + 5);
 
         this.infoBox = new google.maps.InfoWindow({
             content: this.infoContent,

@@ -114,7 +114,7 @@ const API_COLUMNS_TRIPS = Object.freeze({
 const API_COLUMNS_LIVE_TRIPS = Object.freeze({
     vehID: 1,
     PUdate: 2,
-    PUapptTime: 3,
+    DOapptTime: 3,
     scheduledPUTime: 4,
     scheduledDOTime: 5,
     forcastedPUTime: 6,
@@ -207,6 +207,8 @@ const TEST_STOPS = [
         { name: 'Fixed Stop [5]', type: TRIP_TYPE.fixedstop, PUcoords: { lat: 38.903424, lng: -77.019672 }, DOcoords: { lat: 38.892258, lng: -77.019672 }, PUadr: '888 street', DOadr: '999 street', travelTime: 3, idleTime: 2 }
     ]];
 
+const TEST_LIVE_TRIP = { liveRecord: [0, 7.0, "Wed, 19 Jan 2022 08:30:00 GMT", 0, "Wed, 19 Jan 2022 08:20:00 GMT", "Wed, 19 Jan 2022 08:30:32 GMT", "Wed, 19 Jan 2022 08:20:00 GMT", "Wed, 19 Jan 2022 08:30:32 GMT", 1, 0, "Ryzek, Tom", 44.62402, -123.078568, 44.6282435781227, -123.04818019605, "2080 Queen Ave Se", "1330 Goldfish Farm Rd SE", 6.03, 2.2, 130015113, "503-312-0341", "ACCEPTED", "On-time"] };
+
 //===========================================
 //  VARIABLE SVG'S
 //===========================================
@@ -277,5 +279,5 @@ const VEHICLE_TYPE = Object.freeze({
 export {
     INIT_MODE, TRIP_TYPE, VEHICLE_STATUS, SIM_AREA, WINDOW_TYPE, TEST_ID_LETTERS, WINDOW_PARAMS, COLORS, INIT_COORDS, TEST_STOPS, DEFAULT_TITLE, API_COLUMNS_ALERTS,
     dropoffSVG, pickupSVG, stopSVG, depotSVG, ARROW_LINE_SYMBOL, DASHED_LINE_SYMBOL, LOG_ENTRY_TYPES, API_COLUMNS_TRIPS, APIURL, API_FUNCTIONS, STATS_TABLE_HEADER, API_COLUMNS_ZONES,
-    TEST_NOTIF, CAR_PATH, BUS_PATH, LIVE_NOTIF, LIVE_VEHICLE_STATUS, EVENT_SEVERITY, SIM_NOTIF, API_COLUMNS_AVL, VEHICLE_TYPE, API_COLUMNS_LIVE_TRIPS, LOG_ENTRY_TEXT
+    TEST_NOTIF, CAR_PATH, BUS_PATH, LIVE_NOTIF, LIVE_VEHICLE_STATUS, EVENT_SEVERITY, SIM_NOTIF, API_COLUMNS_AVL, VEHICLE_TYPE, API_COLUMNS_LIVE_TRIPS, LOG_ENTRY_TEXT, TEST_LIVE_TRIP
 };

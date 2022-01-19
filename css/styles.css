@@ -1031,3 +1031,50 @@ div.noUi-value.noUi-value-horizontal.noUi-value-large {
   border-width: 2px;
   border-color: salmon;
 }
+
+.link-text:hover {
+    text-decoration: underline;
+    color: #00acc1;
+}
+
+.draggable {
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  transform: translateX(-50%);
+  z-index: 9998;
+  min-width:  300px;
+  min-height: 200px;
+  width: fit-content;
+  height: fit-content;
+  padding: 0px 10px 10px 10px;
+  background-color: white;
+  border-radius: 5px;
+}
+
+.draggable:hover {
+  z-index: 9999 !important;
+}
+
+.drag-close {
+  padding-top: 3px !important;
+  color: grey;
+  cursor: pointer;
+}
+
+.drag-phone {
+  font-size: 16px;
+  margin-left: 5px;
+}
+
+.drag-table-header-pu {
+  text-decoration: underline; 
+  font-size: 18px;
+  margin: 8px 0px -10px 0px;
+}
+
+.drag-table-header-do {
+  text-decoration: underline; 
+  font-size: 18px;
+  margin: 10px 0px -10px 0px;
+}
