@@ -112,9 +112,9 @@ class Trip {
             case ('ACCEPTED'):
             case ('ASSIGNED'):
             case ('IRTPU'):
+            case ('ATLOCATION'):
             case ('PICKEDUP'):
                 return true;
-            case ('ATLOCATION'):
             case ('CANCELLED'):
             case ('NOSHOWREQ'):
             case ('NOSHOW'):

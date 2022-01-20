@@ -558,4 +558,5 @@ function zoneControl(controlDiv) {
     controlDiv.appendChild(controlUI);
 }
 
-export { initMap, checkMapResize, drawTripPath, drawNextIcon, drawNextNIcons, drawStaticIcons, createVehicleIcon, resetMapCenter, setMapZoom, map, mapCenter };
+export { initMap, checkMapResize, drawTripPath, drawNextIcon, drawNextNIcons, drawStaticIcons, 
+    createVehicleIcon, resetMapCenter, setMapZoom, map, mapCenter, allowZoomModification };

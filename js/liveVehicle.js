@@ -1,6 +1,6 @@
 import { handleVehicleSelect, liveQueueEntries, activeVehicle } from './liveQueue.js';
+import { map, setMapZoom, allowZoomModification } from './map.js';
 import { isColor, timeToString } from './utils.js';
-import { map, setMapZoom } from './map.js';
 import { ARROW_LINE_SYMBOL } from './constants.js';
 import { liveVehicles } from './vehicleList.js';
 import { LiveMarker } from './liveMarker.js';
@@ -445,7 +445,9 @@ class LiveVehicle {
         bounds.extend(marker.DOcoords);
 
         map.fitBounds(bounds);
-        map.setZoom(prevZoom);
+        
+        if (!allowZoomModification)
+            map.setZoom(prevZoom);
     }
 
     #determineIsOnTime(trip) {

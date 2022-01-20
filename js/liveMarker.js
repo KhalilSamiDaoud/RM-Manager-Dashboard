@@ -3,10 +3,12 @@ import { Trip } from './trip.js';
 import { map } from './map.js';
 
 class LiveMarker {
-    constructor(trip, ownerVehicle) {
+    constructor(trip, ownerVehicle, ownerList = null) {
         if (!(trip instanceof Trip)) this.#_throw('No Trip Specified.');
 
         this.trip = trip;
+        this.ownerVehicle = ownerVehicle;
+        this.ownerList = ownerList;
 
         this.name = trip.name;
         this.PUcoords = trip.PUcoords;
@@ -15,7 +17,6 @@ class LiveMarker {
         this.DOtime = trip.forcastedDOTime;
         this.id = trip.confirmation;
 
-        this.ownerVehicle = ownerVehicle;
         this.drawPU = (trip.status != 'PICKEDUP');
         this.eventManager = new AbortController();
 
@@ -91,7 +92,11 @@ class LiveMarker {
     }
 
     #handleMarkerClick() {
-        this.ownerVehicle.focusTripMarker(this.id);
+        if(!this.ownerList)
+            this.ownerVehicle.focusTripMarker(this.id);
+        else
+            this.ownerList.focusTripMarker(this.id);
+
         this.infoBox.open(map);
     }
 
@@ -150,11 +155,15 @@ class LiveMarker {
             this.path.setMap(null);
     }
 
+    hideInfoBox() {
+        this.infoBox.close();
+    }
+
     showMarkers() {
         this.showPUMarker();
         this.showDOMarker();
 
-        if (this.ownerVehicle.isFocusingMarker)
+        if (this.ownerVehicle.isFocusingMarker && !this.ownerList)
             if (this.ownerVehicle.focusedMarker.trip.confirmation === this.trip.confirmation)
                 this.path.setMap(map);
     }

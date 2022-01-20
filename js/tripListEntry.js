@@ -98,15 +98,6 @@ class TripListEntry {
 
     reStyle() {
         switch (this.trip.status) {
-            case ('ATLOCATION'):
-                this.elem.classList.add('green', 'lighten-4', 'semi-transparent');
-                this.elem.classList.remove('pointer-cursor');
-                this.pickedUpStatus = PU_STATUS.none;
-                this.active = false;
-
-                this.elem.remove();
-                this.parent.tripsElem.appendChild(this.elem);
-                return;
             case ('CANCELLED'):
             case ('NOSHOWREQ'):
             case ('NOSHOW'):
@@ -150,13 +141,12 @@ class TripListEntry {
             case ('ASSIGNED'):
             case ('DISPATCHED'):
                 return 'assignment';
+            case ('ATLOCATION'):
             case ('ACCEPTED'):
             case ('IRTPU'):
                 return 'hail';
             case ('PICKEDUP'):
                 return 'follow_the_signs';
-            case ('ATLOCATION'):
-                return 'check_circle_outline';
             case ('CANCELLED'):
             case ('NOSHOWREQ'):
             case ('NOSHOW'):

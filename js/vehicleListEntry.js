@@ -1,26 +1,35 @@
-import { VEHICLE_LIST, QUEUE_LISTS, VEHICLE_LIST_ENTRY_TYPE, handleVehicleSelect, queueWin } from './liveQueue.js';
+import { VEHICLE_LIST, QUEUE_LISTS, handleVehicleSelect, queueWin } from './liveQueue.js';
 import { TripListEntry } from './TripListEntry.js';
 import { resetMapCenter } from './map.js';
 
+const Q_ENTRY_TYPE = {
+    vehicle: 0,
+    zone: 1,
+    divider: 2,
+    search: 3,
+    active: 4,
+    none: 5,
+}
+
 class VehicleListEntry {
-    constructor(type = VEHICLE_LIST_ENTRY_TYPE.none, refObj = null, refZone = null) {
+    constructor(type = Q_ENTRY_TYPE.none, refObj = null, refZone = null) {
         this.type = type;
         this.fullyInit = false;
 
         switch (this.type) {
-            case VEHICLE_LIST_ENTRY_TYPE.vehicle:
+            case Q_ENTRY_TYPE.vehicle:
                 this.vehicle = (refObj) ? refObj : this.#_throw('No Vehicle Specified.');
                 this.name = refObj.name;
                 this.refZone = refZone;
                 this.tripList = new Map();
                 this.passengerCache = 0;
                 break;
-            case VEHICLE_LIST_ENTRY_TYPE.zone:
+            case Q_ENTRY_TYPE.zone:
                 this.zone = (refObj) ? refObj : this.#_throw('No Zone Specified.');
                 this.name = refObj.name;
                 break;
-            case VEHICLE_LIST_ENTRY_TYPE.search:
-            case VEHICLE_LIST_ENTRY_TYPE.general:
+            case Q_ENTRY_TYPE.search:
+            case Q_ENTRY_TYPE.active:
                 this.tripList = new Map();
                 break;
             default:
@@ -48,7 +57,7 @@ class VehicleListEntry {
         this.elem = queueWin.createElement('li');
 
         switch (this.type) {
-            case VEHICLE_LIST_ENTRY_TYPE.vehicle:
+            case Q_ENTRY_TYPE.vehicle:
                 let vehicleElem = queueWin.createElement('a');
                 vehicleElem.setAttribute('href', '#!');
                 vehicleElem.style.background = this.vehicle.zone.color + '10';
@@ -70,7 +79,7 @@ class VehicleListEntry {
                 this.elem.appendChild(vehicleElem);
                 this.elem.addEventListener('click', () => { handleVehicleSelect(this); });
                 break;
-            case VEHICLE_LIST_ENTRY_TYPE.zone:
+            case Q_ENTRY_TYPE.zone:
                 this.elem.classList.add('interactable');
 
                 let zoneElem = queueWin.createElement('a');
@@ -80,9 +89,9 @@ class VehicleListEntry {
 
                 this.elem.appendChild(zoneElem);
                 break;
-            case VEHICLE_LIST_ENTRY_TYPE.search:
-            case VEHICLE_LIST_ENTRY_TYPE.general:
-                let isGeneral = (this.type == VEHICLE_LIST_ENTRY_TYPE.general);
+            case Q_ENTRY_TYPE.search:
+            case Q_ENTRY_TYPE.active:
+                let isGeneral = (this.type == Q_ENTRY_TYPE.active);
 
                 let listElem = queueWin.createElement('a');
                 listElem.innerText = (isGeneral) ? 'Active Trips' : 'Search Results';
@@ -106,7 +115,7 @@ class VehicleListEntry {
                 }
 
                 return;
-            case VEHICLE_LIST_ENTRY_TYPE.divider:
+            case Q_ENTRY_TYPE.divider:
                 this.elem.classList.add('divider');
                 this.elem.setAttribute('tabindex', '-1');
                 break;
@@ -121,7 +130,7 @@ class VehicleListEntry {
     }
 
     updateTripCount() {
-        if (!this.type == VEHICLE_LIST_ENTRY_TYPE.vehicle) return;
+        if (!this.type == Q_ENTRY_TYPE.vehicle) return;
         let tempPsngrs = this.vehicle.getActiveTripCount();
         if (this.passengerCache == tempPsngrs) return;
         this.passengerCache = tempPsngrs;
@@ -188,14 +197,14 @@ class VehicleListEntry {
     }
 
     clearTripList() {
-        if (this.type == VEHICLE_LIST_ENTRY_TYPE.zone || this.type == VEHICLE_LIST_ENTRY_TYPE.divider)
+        if (this.type == Q_ENTRY_TYPE.zone || this.type == Q_ENTRY_TYPE.divider)
             return;
 
         while (this.tripsElem.firstChild) {
             this.tripsElem.removeChild(this.tripsElem.firstChild);
         }
 
-        if (this.type != VEHICLE_LIST_ENTRY_TYPE.search)
+        if (this.type != Q_ENTRY_TYPE.search)
             this.tripList?.forEach(trip => {
                 trip.destroy();
             });
@@ -220,9 +229,9 @@ class VehicleListEntry {
             if (i == 0) {
                 emptyElem.textNode = queueWin.createElement('span');
                 emptyElem.textNode.setAttribute('style', 'margin:auto;');
-                if (this.type == VEHICLE_LIST_ENTRY_TYPE.search)
+                if (this.type == Q_ENTRY_TYPE.search)
                     emptyElem.textNode.innerText = 'No trips found.';
-                else if (this.type == VEHICLE_LIST_ENTRY_TYPE.general)
+                else if (this.type == Q_ENTRY_TYPE.active)
                     emptyElem.textNode.innerText = 'No active trips.';
                 else
                     emptyElem.textNode.innerText = 'No assigned trips.';
@@ -240,4 +249,4 @@ class VehicleListEntry {
     #_throw(msg) { throw new Error(msg); }
 }
 
-export { VehicleListEntry };
+export { VehicleListEntry, Q_ENTRY_TYPE };
